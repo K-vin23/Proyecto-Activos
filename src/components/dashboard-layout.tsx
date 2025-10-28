@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC, ReactNode } from 'react';
@@ -64,7 +65,7 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive('/users')} tooltip="Usuarios">
-                  <Link href="#">
+                  <Link href="/users">
                     <Users />
                     <span>Usuarios</span>
                   </Link>
