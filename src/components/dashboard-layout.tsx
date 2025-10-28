@@ -114,7 +114,7 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
             </SidebarMenu>
           </SidebarFooter>
         </Sidebar>
-        <SidebarInset>{children}</SidebarInset>
+        <SidebarInset className="overflow-auto">{children}</SidebarInset>
       </div>
     </SidebarProvider>
   );
