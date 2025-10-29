@@ -12,7 +12,7 @@ import {
   DialogDescription,
   DialogClose,
 } from '@/components/ui/dialog';
-import { PlusCircle, X, Calendar as CalendarIcon } from 'lucide-react';
+import { PlusCircle, X, Calendar as CalendarIcon, Trash2 } from 'lucide-react';
 import DashboardLayout from '@/components/dashboard-layout';
 import Header from '@/components/dashboard/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -50,6 +50,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Mock data for assets
 const assets = [
@@ -74,6 +75,16 @@ const assets = [
     status: 'Asignado',
     company: 'Soluciones Tech SAS',
   },
+];
+
+const deletedAssets = [
+    {
+      id: 'LAP-000',
+      name: 'Laptop HP Probook',
+      category: 'Computadores',
+      deletionDate: '2023-10-29',
+      reason: 'Dañado sin reparación',
+    },
 ];
 
 // Mock data for companies and users to populate select inputs
@@ -384,47 +395,95 @@ export default function ActivosPage() {
               </DialogContent>
             </Dialog>
           </div>
-          <Card>
-            <CardHeader>
-              <CardTitle>Listado de Activos</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>ID Activo</TableHead>
-                      <TableHead>Nombre</TableHead>
-                      <TableHead>Categoría</TableHead>
-                      <TableHead>Empresa</TableHead>
-                      <TableHead>Estado</TableHead>
-                      <TableHead>Acciones</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {assets.map((asset) => (
-                      <TableRow key={asset.id}>
-                        <TableCell className="font-medium">{asset.id}</TableCell>
-                        <TableCell>{asset.name}</TableCell>
-                        <TableCell>{asset.category}</TableCell>
-                        <TableCell>{asset.company}</TableCell>
-                        <TableCell>
-                          <Badge variant={asset.status === 'Asignado' ? 'default' : 'secondary'}>
-                            {asset.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Button variant="outline" size="sm">
-                            Ver Detalles
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
+          <Tabs defaultValue="all">
+            <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="all">Listado de Activos</TabsTrigger>
+                <TabsTrigger value="deleted">Activos Eliminados</TabsTrigger>
+            </TabsList>
+            <TabsContent value="all">
+                <Card>
+                    <CardHeader>
+                    <CardTitle>Listado de Activos</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                    <div className="overflow-x-auto">
+                        <Table>
+                        <TableHeader>
+                            <TableRow>
+                            <TableHead>ID Activo</TableHead>
+                            <TableHead>Nombre</TableHead>
+                            <TableHead>Categoría</TableHead>
+                            <TableHead>Empresa</TableHead>
+                            <TableHead>Estado</TableHead>
+                            <TableHead>Acciones</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {assets.map((asset) => (
+                            <TableRow key={asset.id}>
+                                <TableCell className="font-medium">{asset.id}</TableCell>
+                                <TableCell>{asset.name}</TableCell>
+                                <TableCell>{asset.category}</TableCell>
+                                <TableCell>{asset.company}</TableCell>
+                                <TableCell>
+                                <Badge variant={asset.status === 'Asignado' ? 'default' : 'secondary'}>
+                                    {asset.status}
+                                </Badge>
+                                </TableCell>
+                                <TableCell>
+                                <Button variant="outline" size="sm">
+                                    Ver Detalles
+                                </Button>
+                                </TableCell>
+                            </TableRow>
+                            ))}
+                        </TableBody>
+                        </Table>
+                    </div>
+                    </CardContent>
+                </Card>
+            </TabsContent>
+            <TabsContent value="deleted">
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Activos Eliminados</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                    <div className="overflow-x-auto">
+                        <Table>
+                        <TableHeader>
+                            <TableRow>
+                            <TableHead>ID Activo</TableHead>
+                            <TableHead>Nombre</TableHead>
+                            <TableHead>Categoría</TableHead>
+                            <TableHead>Fecha de Baja</TableHead>
+                            <TableHead>Motivo</TableHead>
+                            <TableHead>Acciones</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {deletedAssets.map((asset) => (
+                            <TableRow key={asset.id}>
+                                <TableCell className="font-medium">{asset.id}</TableCell>
+                                <TableCell>{asset.name}</TableCell>
+                                <TableCell>{asset.category}</TableCell>
+                                <TableCell>{asset.deletionDate}</TableCell>
+                                <TableCell>{asset.reason}</TableCell>
+                                <TableCell>
+                                <Button variant="outline" size="sm">
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Restaurar
+                                </Button>
+                                </TableCell>
+                            </TableRow>
+                            ))}
+                        </TableBody>
+                        </Table>
+                    </div>
+                    </CardContent>
+                </Card>
+            </TabsContent>
+          </Tabs>
         </main>
       </div>
     </DashboardLayout>
