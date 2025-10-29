@@ -22,6 +22,7 @@ import {
   LifeBuoy,
   LogOut,
   Box,
+  Building,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { usePathname } from 'next/navigation';
@@ -60,6 +61,14 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
                   <Link href="#">
                     <Archive />
                     <span>Activos</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive('/empresas')} tooltip="Empresas">
+                  <Link href="/empresas">
+                    <Building />
+                    <span>Empresas</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -121,3 +130,5 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
 };
 
 export default DashboardLayout;
+
+    
