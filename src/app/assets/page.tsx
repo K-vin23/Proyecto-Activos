@@ -51,6 +51,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { Separator } from '@/components/ui/separator';
 
 // Mock data for assets
 const assets = [
@@ -234,6 +235,8 @@ function AssetForm({ assetType, onRegisterSuccess, onBack }: { assetType: 'Equip
                     )}
                 />
             </div>
+            
+            <Separator className="my-4" />
 
             <div className={`grid grid-cols-1 ${isComputer ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-4`}>
                 {/* Common Fields */}
