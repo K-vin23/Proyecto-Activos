@@ -343,6 +343,7 @@ function AssetForm({ onRegisterSuccess }: { onRegisterSuccess?: () => void }) {
             </FormItem>
           )}
         />
+        <div /> 
         <FormField
           control={form.control}
           name="officeVersion"
