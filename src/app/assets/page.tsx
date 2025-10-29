@@ -96,11 +96,11 @@ const users = [
   ];
 
 const computerAssetSchema = z.object({
+  responsable: z.string().min(1, 'El responsable es requerido.'),
   serialNumber: z.string().min(1, 'El número de serie es requerido.'),
   invoiceNumber: z.string().optional(),
   purchaseDate: z.date({ required_error: 'La fecha de compra es requerida.' }),
   assetName: z.string().min(1, 'El nombre del activo es requerido.'),
-  responsable: z.string().min(1, 'El responsable es requerido.'),
   networkName: z.string().optional(),
   equipmentType: z.enum(['micro', 'portatil', 'servidor', 'sff', 'todo en uno', 'torre', 'ups']),
   brand: z.string().min(1, 'La marca es requerida.'),
@@ -147,10 +147,10 @@ function AssetForm({ assetType, onRegisterSuccess, onBack }: { assetType: 'Equip
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: isComputer ? {
+      responsable: '',
       serialNumber: '',
       invoiceNumber: '',
       assetName: '',
-      responsable: '',
       networkName: '',
       brand: '',
       model: '',
@@ -160,8 +160,8 @@ function AssetForm({ assetType, onRegisterSuccess, onBack }: { assetType: 'Equip
       officeKey: '',
       osKey: '',
     } : {
-      assetName: '',
       responsable: '',
+      assetName: '',
       serialNumber: '',
       invoiceNumber: '',
       brand: '',
@@ -209,298 +209,130 @@ function AssetForm({ assetType, onRegisterSuccess, onBack }: { assetType: 'Equip
             Volver
         </Button>
         <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className={`grid grid-cols-1 ${isComputer ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-4 px-6 pb-6`}>
-            {/* Common Fields */}
-            <FormField
-            control={form.control}
-            name="assetName"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Activo / Nombre</FormLabel>
-                <FormControl>
-                    <Input placeholder={getPlaceholder()} {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-             <FormField
+        <form onSubmit={form.handleSubmit(onSubmit)} className="px-6 pb-6">
+            <div className="mb-6">
+                 <FormField
+                    control={form.control}
+                    name="responsable"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Responsable</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value as string}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Selecciona un responsable" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                {users.map(user => (
+                                    <SelectItem key={user.id} value={user.name}>{user.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            </div>
+
+            <div className={`grid grid-cols-1 ${isComputer ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-4`}>
+                {/* Common Fields */}
+                <FormField
                 control={form.control}
-                name="responsable"
+                name="assetName"
                 render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Responsable</FormLabel>
-                     <Select onValueChange={field.onChange} defaultValue={field.value as string}>
-                        <FormControl>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Selecciona un responsable" />
-                        </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                            {users.map(user => (
-                                <SelectItem key={user.id} value={user.name}>{user.name}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                    <FormMessage />
-                    </FormItem>
-                )}
-            />
-            
-            <FormField
-            control={form.control}
-            name="serialNumber"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Número de Serie</FormLabel>
-                <FormControl>
-                    <Input placeholder="DXG-12345-ABC" {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-            <FormField
-            control={form.control}
-            name="invoiceNumber"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Factura (Opcional)</FormLabel>
-                <FormControl>
-                    <Input placeholder="FV-2024-9876" {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-            <FormField
-            control={form.control}
-            name="purchaseDate"
-            render={({ field }) => (
-                <FormItem className="flex flex-col pt-2">
-                <FormLabel>Fecha de Compra</FormLabel>
-                <Popover>
-                    <PopoverTrigger asChild>
+                    <FormLabel>Activo / Nombre</FormLabel>
                     <FormControl>
-                        <Button
-                        variant={'outline'}
-                        className={cn(
-                            'w-full pl-3 text-left font-normal',
-                            !field.value && 'text-muted-foreground'
-                        )}
-                        >
-                        {field.value ? (
-                            format(field.value, 'PPP')
-                        ) : (
-                            <span>Selecciona una fecha</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                    </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                        mode="single"
-                        selected={field.value as Date | undefined}
-                        onSelect={field.onChange}
-                        disabled={(date) =>
-                        date > new Date() || date < new Date('1900-01-01')
-                        }
-                        initialFocus
-                    />
-                    </PopoverContent>
-                </Popover>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-            <FormField
-            control={form.control}
-            name="brand"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Marca</FormLabel>
-                <FormControl>
-                    <Input placeholder="Dell, HP, APC..." {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-            
-            {/* Computer-specific fields */}
-            {isComputer && (
-            <>
-            <FormField
-            control={form.control}
-            name="model"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Modelo</FormLabel>
-                <FormControl>
-                    <Input placeholder="Latitude 5420" {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-            <FormField
-                control={form.control}
-                name="networkName"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Nombre en Red (Opcional)</FormLabel>
-                    <FormControl>
-                        <Input placeholder="PC-VENTAS-01" {...field} />
+                        <Input placeholder={getPlaceholder()} {...field} />
                     </FormControl>
                     <FormMessage />
                     </FormItem>
                 )}
                 />
-            <FormField
-            control={form.control}
-            name="equipmentType"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Tipo de Equipo</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value as string}>
+                <FormField
+                control={form.control}
+                name="serialNumber"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Número de Serie</FormLabel>
                     <FormControl>
-                    <SelectTrigger>
-                        <SelectValue placeholder="Selecciona un tipo" />
-                    </SelectTrigger>
+                        <Input placeholder="DXG-12345-ABC" {...field} />
                     </FormControl>
-                    <SelectContent>
-                    <SelectItem value="micro">Micro</SelectItem>
-                    <SelectItem value="portatil">Portátil</SelectItem>
-                    <SelectItem value="servidor">Servidor</SelectItem>
-                    <SelectItem value="sff">SFF</SelectItem>
-                    <SelectItem value="todo en uno">Todo en Uno</SelectItem>
-                    <SelectItem value="torre">Torre</SelectItem>
-                    </SelectContent>
-                </Select>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-            
-            <FormField
-            control={form.control}
-            name="processor"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Procesador</FormLabel>
-                <FormControl>
-                    <Input placeholder="Intel Core i5-1135G7" {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-            <FormField
-            control={form.control}
-            name="ram"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Memoria RAM</FormLabel>
-                <FormControl>
-                    <Input placeholder="16 GB DDR4" {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-            <FormField
-            control={form.control}
-            name="storage"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Disco Duro</FormLabel>
-                <FormControl>
-                    <Input placeholder="512 GB SSD NVMe" {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-            <div className="md:col-span-3" />
-            <FormField
-            control={form.control}
-            name="officeVersion"
-            render={({ field }) => (
-                <FormItem className="md:col-span-1">
-                <FormLabel>Versión de Office</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value as string}>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <FormField
+                control={form.control}
+                name="invoiceNumber"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Factura (Opcional)</FormLabel>
                     <FormControl>
-                    <SelectTrigger>
-                        <SelectValue placeholder="Selecciona una versión" />
-                    </SelectTrigger>
+                        <Input placeholder="FV-2024-9876" {...field} />
                     </FormControl>
-                    <SelectContent>
-                    <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2007">Office 2007 Hogar y Empresas</SelectItem>
-                    <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2010">Office 2010 Hogar y Empresas</SelectItem>
-                    <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2013">Office 2013 Hogar y Empresas</SelectItem>
-                    <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2016">Office 2016 Hogar y Empresas</SelectItem>
-                    <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2019">Office 2019 Hogar y Empresas</SelectItem>
-                    <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2021">Office 2021 Hogar y Empresas</SelectItem>
-                    <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2024 - ES-ES">Office 2024 Hogar y Empresas</SelectItem>
-                    </SelectContent>
-                </Select>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-            <FormField
-            control={form.control}
-            name="officeKey"
-            render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                <FormLabel>Clave de Office (Opcional)</FormLabel>
-                <FormControl>
-                    <Input placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-            <FormField
-            control={form.control}
-            name="os"
-            render={({ field }) => (
-                <FormItem className="md:col-span-1">
-                <FormLabel>Sistema Operativo</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value as string}>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <FormField
+                control={form.control}
+                name="purchaseDate"
+                render={({ field }) => (
+                    <FormItem className="flex flex-col pt-2">
+                    <FormLabel>Fecha de Compra</FormLabel>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                        <FormControl>
+                            <Button
+                            variant={'outline'}
+                            className={cn(
+                                'w-full pl-3 text-left font-normal',
+                                !field.value && 'text-muted-foreground'
+                            )}
+                            >
+                            {field.value ? (
+                                format(field.value, 'PPP')
+                            ) : (
+                                <span>Selecciona una fecha</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                        </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                            mode="single"
+                            selected={field.value as Date | undefined}
+                            onSelect={field.onChange}
+                            disabled={(date) =>
+                            date > new Date() || date < new Date('1900-01-01')
+                            }
+                            initialFocus
+                        />
+                        </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <FormField
+                control={form.control}
+                name="brand"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Marca</FormLabel>
                     <FormControl>
-                    <SelectTrigger>
-                        <SelectValue placeholder="Selecciona un S.O." />
-                    </SelectTrigger>
+                        <Input placeholder="Dell, HP, APC..." {...field} />
                     </FormControl>
-                    <SelectContent>
-                    <SelectItem value="Windows 10 Pro">Windows 10 Pro</SelectItem>
-                    <SelectItem value="Windows 11 Pro">Windows 11 Pro</SelectItem>
-                    </SelectContent>
-                </Select>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-            <FormField
-            control={form.control}
-            name="osKey"
-            render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                <FormLabel>Clave de S.O. (Opcional)</FormLabel>
-                <FormControl>
-                    <Input placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-            </>
-            )}
-
-            {/* Simple form specific fields */}
-            {!isComputer && (
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                
+                {/* Computer-specific fields */}
+                {isComputer && (
                 <>
                 <FormField
                 control={form.control}
@@ -509,7 +341,7 @@ function AssetForm({ assetType, onRegisterSuccess, onBack }: { assetType: 'Equip
                     <FormItem>
                     <FormLabel>Modelo</FormLabel>
                     <FormControl>
-                        <Input placeholder="Smart-UPS 1500" {...field} />
+                        <Input placeholder="Latitude 5420" {...field} />
                     </FormControl>
                     <FormMessage />
                     </FormItem>
@@ -517,29 +349,201 @@ function AssetForm({ assetType, onRegisterSuccess, onBack }: { assetType: 'Equip
                 />
                 <FormField
                     control={form.control}
-                    name="description"
+                    name="networkName"
                     render={({ field }) => (
-                        <FormItem className="md:col-span-2">
-                            <FormLabel>Descripción (Opcional)</FormLabel>
-                            <FormControl>
-                                <Textarea
-                                placeholder="Cualquier detalle adicional sobre el activo..."
-                                className="resize-none"
-                                {...field}
-                                />
-                            </FormControl>
-                            <FormMessage />
+                        <FormItem>
+                        <FormLabel>Nombre en Red (Opcional)</FormLabel>
+                        <FormControl>
+                            <Input placeholder="PC-VENTAS-01" {...field} />
+                        </FormControl>
+                        <FormMessage />
                         </FormItem>
                     )}
+                    />
+                <FormField
+                control={form.control}
+                name="equipmentType"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Tipo de Equipo</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value as string}>
+                        <FormControl>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Selecciona un tipo" />
+                        </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                        <SelectItem value="micro">Micro</SelectItem>
+                        <SelectItem value="portatil">Portátil</SelectItem>
+                        <SelectItem value="servidor">Servidor</SelectItem>
+                        <SelectItem value="sff">SFF</SelectItem>
+                        <SelectItem value="todo en uno">Todo en Uno</SelectItem>
+                        <SelectItem value="torre">Torre</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                
+                <FormField
+                control={form.control}
+                name="processor"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Procesador</FormLabel>
+                    <FormControl>
+                        <Input placeholder="Intel Core i5-1135G7" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <FormField
+                control={form.control}
+                name="ram"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Memoria RAM</FormLabel>
+                    <FormControl>
+                        <Input placeholder="16 GB DDR4" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <FormField
+                control={form.control}
+                name="storage"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Disco Duro</FormLabel>
+                    <FormControl>
+                        <Input placeholder="512 GB SSD NVMe" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <div className="md:col-span-3" />
+                <FormField
+                control={form.control}
+                name="officeVersion"
+                render={({ field }) => (
+                    <FormItem className="md:col-span-1">
+                    <FormLabel>Versión de Office</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value as string}>
+                        <FormControl>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Selecciona una versión" />
+                        </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                        <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2007">Office 2007 Hogar y Empresas</SelectItem>
+                        <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2010">Office 2010 Hogar y Empresas</SelectItem>
+                        <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2013">Office 2013 Hogar y Empresas</SelectItem>
+                        <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2016">Office 2016 Hogar y Empresas</SelectItem>
+                        <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2019">Office 2019 Hogar y Empresas</SelectItem>
+                        <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2021">Office 2021 Hogar y Empresas</SelectItem>
+                        <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2024 - ES-ES">Office 2024 Hogar y Empresas</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <FormField
+                control={form.control}
+                name="officeKey"
+                render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                    <FormLabel>Clave de Office (Opcional)</FormLabel>
+                    <FormControl>
+                        <Input placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <FormField
+                control={form.control}
+                name="os"
+                render={({ field }) => (
+                    <FormItem className="md:col-span-1">
+                    <FormLabel>Sistema Operativo</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value as string}>
+                        <FormControl>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Selecciona un S.O." />
+                        </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                        <SelectItem value="Windows 10 Pro">Windows 10 Pro</SelectItem>
+                        <SelectItem value="Windows 11 Pro">Windows 11 Pro</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <FormField
+                control={form.control}
+                name="osKey"
+                render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                    <FormLabel>Clave de S.O. (Opcional)</FormLabel>
+                    <FormControl>
+                        <Input placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
                 />
                 </>
-            )}
+                )}
+
+                {/* Simple form specific fields */}
+                {!isComputer && (
+                    <>
+                    <FormField
+                    control={form.control}
+                    name="model"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Modelo</FormLabel>
+                        <FormControl>
+                            <Input placeholder="Smart-UPS 1500" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                            <FormItem className="md:col-span-2">
+                                <FormLabel>Descripción (Opcional)</FormLabel>
+                                <FormControl>
+                                    <Textarea
+                                    placeholder="Cualquier detalle adicional sobre el activo..."
+                                    className="resize-none"
+                                    {...field}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    </>
+                )}
 
 
-            <div className={isComputer ? "md:col-span-3" : "md:col-span-2"}>
-            <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
-                Registrar Activo
-            </Button>
+                <div className={`${isComputer ? "md:col-span-3" : "md:col-span-2"} pt-4`}>
+                <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
+                    Registrar Activo
+                </Button>
+                </div>
             </div>
         </form>
         </Form>
