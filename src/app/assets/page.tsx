@@ -60,21 +60,21 @@ const assets = [
     name: 'Laptop Dell XPS 15',
     category: 'Computadores',
     status: 'Asignado',
-    company: 'Soluciones Tech SAS',
+    company: 'PALLOMARO S.A',
   },
   {
     id: 'MON-002',
     name: 'Monitor LG UltraWide 29"',
     category: 'Monitores',
     status: 'En Almacén',
-    company: 'Innovatec Colombia',
+    company: 'HYCO',
   },
   {
     id: 'SFT-003',
     name: 'Licencia Adobe Creative Cloud',
     category: 'Software',
     status: 'Asignado',
-    company: 'Soluciones Tech SAS',
+    company: 'PALLOMARO S.A',
   },
 ];
 

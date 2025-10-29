@@ -45,21 +45,21 @@ import { useToast } from '@/hooks/use-toast';
 const companies = [
   {
     id: 1,
-    name: 'Soluciones Tech SAS',
+    name: 'PALLOMARO S.A',
     city: 'Bogotá',
     status: 'Active',
     avatarId: 'company-avatar',
   },
   {
     id: 2,
-    name: 'Innovatec Colombia',
+    name: 'HYCO',
     city: 'Medellín',
     status: 'Active',
     avatarId: 'company-avatar',
   },
   {
     id: 3,
-    name: 'Sistemas & Consultores',
+    name: 'FUNDIMETAL',
     city: 'Cali',
     status: 'Inactive',
     avatarId: 'company-avatar',

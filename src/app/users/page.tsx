@@ -61,15 +61,15 @@ const users = [
 const companies = [
     {
       id: 1,
-      name: 'Soluciones Tech SAS',
+      name: 'PALLOMARO S.A',
     },
     {
       id: 2,
-      name: 'Innovatec Colombia',
+      name: 'HYCO',
     },
     {
       id: 3,
-      name: 'Sistemas & Consultores',
+      name: 'FUNDIMETAL',
     },
 ];
 
