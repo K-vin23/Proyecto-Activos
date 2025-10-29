@@ -343,6 +343,7 @@ function AssetForm({ onRegisterSuccess }: { onRegisterSuccess?: () => void }) {
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
           name="officeVersion"
@@ -356,13 +357,13 @@ function AssetForm({ onRegisterSuccess }: { onRegisterSuccess?: () => void }) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2007">Office 2007</SelectItem>
-                  <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2010">Office 2010</SelectItem>
-                  <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2013">Office 2013</SelectItem>
-                  <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2016">Office 2016</SelectItem>
-                  <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2019">Office 2019</SelectItem>
-                  <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2021">Office 2021</SelectItem>
-                  <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2024 - ES-ES">Office 2024</SelectItem>
+                  <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2007">Office 2007 Hogar y Empresas</SelectItem>
+                  <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2010">Office 2010 Hogar y Empresas</SelectItem>
+                  <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2013">Office 2013 Hogar y Empresas</SelectItem>
+                  <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2016">Office 2016 Hogar y Empresas</SelectItem>
+                  <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2019">Office 2019 Hogar y Empresas</SelectItem>
+                  <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2021">Office 2021 Hogar y Empresas</SelectItem>
+                  <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2024 - ES-ES">Office 2024 Hogar y Empresas</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -382,6 +383,7 @@ function AssetForm({ onRegisterSuccess }: { onRegisterSuccess?: () => void }) {
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
           name="os"
@@ -417,9 +419,11 @@ function AssetForm({ onRegisterSuccess }: { onRegisterSuccess?: () => void }) {
           )}
         />
 
-        <Button type="submit" className="w-full bg-primary hover:bg-primary/90 md:col-span-3">
-          Registrar Activo
-        </Button>
+        <div className="md:col-span-3">
+          <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
+            Registrar Activo
+          </Button>
+        </div>
       </form>
     </Form>
   );
