@@ -87,11 +87,20 @@ const deletedAssets = [
     },
 ];
 
+// Mock data for users - In a real app, this would come from an API
+const users = [
+    { id: '1', name: 'John Doe' },
+    { id: '2', name: 'Jane Smith' },
+    { id: '3', name: 'Robert Brown' },
+    { id: '4', name: 'Almacén' },
+  ];
+
 const computerAssetSchema = z.object({
   serialNumber: z.string().min(1, 'El número de serie es requerido.'),
   invoiceNumber: z.string().optional(),
   purchaseDate: z.date({ required_error: 'La fecha de compra es requerida.' }),
   assetName: z.string().min(1, 'El nombre del activo es requerido.'),
+  responsable: z.string().min(1, 'El responsable es requerido.'),
   networkName: z.string().optional(),
   equipmentType: z.enum(['micro', 'portatil', 'servidor', 'sff', 'todo en uno', 'torre', 'ups']),
   brand: z.string().min(1, 'La marca es requerida.'),
@@ -99,7 +108,6 @@ const computerAssetSchema = z.object({
   processor: z.string().min(1, 'El procesador es requerido.'),
   ram: z.string().min(1, 'La memoria RAM es requerida.'),
   storage: z.string().min(1, 'El disco duro es requerido.'),
-  responsable: z.string().min(1, 'El responsable es requerido.'),
   officeVersion: z.enum([
     'MICROSOFT OFFICE HOGAR Y EMPRESAS 2007',
     'MICROSOFT OFFICE HOGAR Y EMPRESAS 2010',
@@ -117,12 +125,12 @@ const computerAssetSchema = z.object({
 
 const simpleAssetSchema = z.object({
     assetName: z.string().min(1, 'El nombre del activo es requerido.'),
+    responsable: z.string().min(1, 'El responsable es requerido.'),
     serialNumber: z.string().min(1, 'El número de serie es requerido.'),
     invoiceNumber: z.string().optional(),
     purchaseDate: z.date({ required_error: 'La fecha de compra es requerida.' }),
     brand: z.string().min(1, 'La marca es requerida.'),
     model: z.string().min(1, 'El modelo es requerido.'),
-    responsable: z.string().min(1, 'El responsable es requerido.'),
     description: z.string().optional(),
 });
 
@@ -142,22 +150,22 @@ function AssetForm({ assetType, onRegisterSuccess, onBack }: { assetType: 'Equip
       serialNumber: '',
       invoiceNumber: '',
       assetName: '',
+      responsable: '',
       networkName: '',
       brand: '',
       model: '',
       processor: '',
       ram: '',
       storage: '',
-      responsable: '',
       officeKey: '',
       osKey: '',
     } : {
       assetName: '',
+      responsable: '',
       serialNumber: '',
       invoiceNumber: '',
       brand: '',
       model: '',
-      responsable: '',
       description: '',
     },
   });
@@ -216,6 +224,29 @@ function AssetForm({ assetType, onRegisterSuccess, onBack }: { assetType: 'Equip
                 </FormItem>
             )}
             />
+             <FormField
+                control={form.control}
+                name="responsable"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Responsable</FormLabel>
+                     <Select onValueChange={field.onChange} defaultValue={field.value as string}>
+                        <FormControl>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Selecciona un responsable" />
+                        </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            {users.map(user => (
+                                <SelectItem key={user.id} value={user.name}>{user.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                    </FormItem>
+                )}
+            />
+            
             <FormField
             control={form.control}
             name="serialNumber"
@@ -296,6 +327,10 @@ function AssetForm({ assetType, onRegisterSuccess, onBack }: { assetType: 'Equip
                 </FormItem>
             )}
             />
+            
+            {/* Computer-specific fields */}
+            {isComputer && (
+            <>
             <FormField
             control={form.control}
             name="model"
@@ -303,16 +338,12 @@ function AssetForm({ assetType, onRegisterSuccess, onBack }: { assetType: 'Equip
                 <FormItem>
                 <FormLabel>Modelo</FormLabel>
                 <FormControl>
-                    <Input placeholder={isComputer ? "Latitude 5420" : "Smart-UPS 1500"} {...field} />
+                    <Input placeholder="Latitude 5420" {...field} />
                 </FormControl>
                 <FormMessage />
                 </FormItem>
             )}
             />
-            
-            {/* Computer-specific fields */}
-            {isComputer && (
-            <>
             <FormField
                 control={form.control}
                 name="networkName"
@@ -390,19 +421,6 @@ function AssetForm({ assetType, onRegisterSuccess, onBack }: { assetType: 'Equip
                 <FormMessage />
                 </FormItem>
             )}
-            />
-             <FormField
-                control={form.control}
-                name="responsable"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Responsable</FormLabel>
-                    <FormControl>
-                        <Input placeholder="John Doe" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
             />
             <div className="md:col-span-3" />
             <FormField
@@ -484,18 +502,18 @@ function AssetForm({ assetType, onRegisterSuccess, onBack }: { assetType: 'Equip
             {/* Simple form specific fields */}
             {!isComputer && (
                 <>
-                 <FormField
-                    control={form.control}
-                    name="responsable"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Responsable</FormLabel>
-                        <FormControl>
-                            <Input placeholder="John Doe" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
+                <FormField
+                control={form.control}
+                name="model"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Modelo</FormLabel>
+                    <FormControl>
+                        <Input placeholder="Smart-UPS 1500" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
                 />
                 <FormField
                     control={form.control}
