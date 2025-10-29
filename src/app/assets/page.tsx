@@ -343,7 +343,6 @@ function AssetForm({ onRegisterSuccess }: { onRegisterSuccess?: () => void }) {
             </FormItem>
           )}
         />
-
         <FormField
           control={form.control}
           name="officeVersion"
@@ -383,7 +382,6 @@ function AssetForm({ onRegisterSuccess }: { onRegisterSuccess?: () => void }) {
             </FormItem>
           )}
         />
-
         <FormField
           control={form.control}
           name="os"
@@ -418,7 +416,6 @@ function AssetForm({ onRegisterSuccess }: { onRegisterSuccess?: () => void }) {
             </FormItem>
           )}
         />
-
         <div className="md:col-span-3">
           <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
             Registrar Activo
