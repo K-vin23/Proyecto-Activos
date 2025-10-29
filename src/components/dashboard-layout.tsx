@@ -57,14 +57,6 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive('/assets')} tooltip="Activos">
-                  <Link href="/assets">
-                    <Archive />
-                    <span>Activos</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive('/empresas')} tooltip="Empresas">
                   <Link href="/empresas">
                     <Building />
@@ -77,6 +69,14 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
                   <Link href="/users">
                     <Users />
                     <span>Usuarios</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive('/assets')} tooltip="Activos">
+                  <Link href="/assets">
+                    <Archive />
+                    <span>Activos</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
