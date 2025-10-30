@@ -101,7 +101,6 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
           <SidebarFooter>
             <div className="flex items-center gap-3 p-2">
               <Avatar className="h-10 w-10">
-                <AvatarImage src={userAvatar?.imageUrl} data-ai-hint={userAvatar?.imageHint} />
                 <AvatarFallback>WP</AvatarFallback>
               </Avatar>
               <div className="flex flex-col overflow-hidden">

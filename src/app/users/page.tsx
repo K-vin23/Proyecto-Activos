@@ -127,7 +127,6 @@ export default function UsersPage() {
                         <TableCell>
                           <div className="flex items-center gap-3">
                              <Avatar className="h-9 w-9">
-                                <AvatarImage src={userAvatar?.imageUrl} data-ai-hint={userAvatar?.imageHint} />
                                 <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                              </Avatar>
                              <div className="grid gap-0.5">
