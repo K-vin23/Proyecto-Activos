@@ -45,6 +45,7 @@ import { useToast } from '@/hooks/use-toast';
 const companies = [
   {
     id: 1,
+    companyId: 'PALLOMARO',
     name: 'PALLOMARO S.A',
     city: 'Bogotá',
     status: 'Active',
@@ -52,6 +53,7 @@ const companies = [
   },
   {
     id: 2,
+    companyId: 'HYCO',
     name: 'HYCO',
     city: 'Medellín',
     status: 'Active',
@@ -59,6 +61,7 @@ const companies = [
   },
   {
     id: 3,
+    companyId: 'FUNDIMETAL',
     name: 'FUNDIMETAL',
     city: 'Cali',
     status: 'Inactive',
@@ -67,6 +70,7 @@ const companies = [
 ];
 
 const companySchema = z.object({
+  companyId: z.string().min(1, 'El ID de la empresa es requerido.'),
   name: z.string().min(1, 'El nombre es requerido.'),
   city: z.string().min(1, 'La ciudad es requerida.'),
 });
@@ -79,6 +83,7 @@ function CompanyForm({ onRegisterSuccess }: { onRegisterSuccess?: () => void }) 
   const form = useForm<CompanySchema>({
     resolver: zodResolver(companySchema),
     defaultValues: {
+      companyId: '',
       name: '',
       city: '',
     },
@@ -108,6 +113,19 @@ function CompanyForm({ onRegisterSuccess }: { onRegisterSuccess?: () => void }) 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 gap-4 px-6 pb-6">
+        <FormField
+          control={form.control}
+          name="companyId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>ID Empresa</FormLabel>
+              <FormControl>
+                <Input placeholder="EJ: EMP001" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <FormField
           control={form.control}
           name="name"
@@ -185,6 +203,7 @@ export default function EmpresasPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Empresa</TableHead>
+                      <TableHead>ID Empresa</TableHead>
                       <TableHead>Ciudad</TableHead>
                       <TableHead>Estado</TableHead>
                       <TableHead>Acciones</TableHead>
@@ -204,6 +223,7 @@ export default function EmpresasPage() {
                              </div>
                           </div>
                         </TableCell>
+                        <TableCell>{company.companyId}</TableCell>
                         <TableCell>{company.city}</TableCell>
                         <TableCell>
                           <Badge variant={company.status === 'Active' ? 'default' : 'destructive'}>
