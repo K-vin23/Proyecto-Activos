@@ -14,7 +14,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { PlusCircle, X, Calendar as CalendarIcon, Trash2, ArrowLeft, Monitor, Zap, Laptop, ClipboardPlus, Eye, UserSwitch } from 'lucide-react';
+import { PlusCircle, X, Calendar as CalendarIcon, Trash2, ArrowLeft, Monitor, Zap, Laptop, ClipboardPlus, Eye, Replace } from 'lucide-react';
 import DashboardLayout from '@/components/dashboard-layout';
 import Header from '@/components/dashboard/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -893,7 +893,7 @@ export default function ActivosPage() {
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <Button variant="secondary" size="icon" onClick={() => handleOpenChangeOwnerDialog(asset)}>
-                                                    <UserSwitch className="h-4 w-4" />
+                                                    <Replace className="h-4 w-4" />
                                                 </Button>
                                             </TooltipTrigger>
                                             <TooltipContent>
@@ -1037,5 +1037,3 @@ export default function ActivosPage() {
     </DashboardLayout>
   );
 }
-
-    
