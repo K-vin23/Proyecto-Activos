@@ -864,7 +864,7 @@ export default function ActivosPage() {
                                                         <CardHeader>
                                                             <CardTitle className="text-xl">Especificaciones Técnicas</CardTitle>
                                                         </CardHeader>
-                                                        <CardContent>
+                                                        <CardContent className="space-y-4">
                                                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                                                                 <div className="md:col-span-1"><span className="font-semibold">ID Activo: </span>{asset.id}</div>
                                                                 <div className="md:col-span-1"><span className="font-semibold">Categoría: </span>{asset.category}</div>
@@ -879,9 +879,14 @@ export default function ActivosPage() {
                                                                 {asset.processor && <div className="md:col-span-1"><span className="font-semibold">Procesador: </span>{asset.processor}</div>}
                                                                 {asset.ram && <div className="md:col-span-1"><span className="font-semibold">RAM: </span>{asset.ram}</div>}
                                                                 {asset.storage && <div className="md:col-span-1"><span className="font-semibold">Almacenamiento: </span>{asset.storage}</div>}
-                                                                {asset.os && asset.osKey && <div className="md:col-span-2"><span className="font-semibold">S.O.: </span>{asset.os} ({asset.osKey})</div>}
-                                                                {asset.officeVersion && asset.officeKey && <div className="md:col-span-2"><span className="font-semibold">Office: </span>{asset.officeVersion.replace('MICROSOFT OFFICE HOGAR Y EMPRESAS ', '')} ({asset.officeKey})</div>}
                                                                 {asset.description && <div className="md:col-span-4"><span className="font-semibold">Descripción: </span>{asset.description}</div>}
+                                                            </div>
+
+                                                            {(asset.os || asset.officeVersion) && <Separator className="my-4" />}
+
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                                                {asset.os && asset.osKey && <div className="space-y-1"><div className="font-semibold">Sistema Operativo</div><div>{asset.os} ({asset.osKey})</div></div>}
+                                                                {asset.officeVersion && asset.officeKey && <div className="space-y-1"><div className="font-semibold">Office</div><div>{asset.officeVersion.replace('MICROSOFT OFFICE HOGAR Y EMPRESAS ', '')} ({asset.officeKey})</div></div>}
                                                             </div>
                                                         </CardContent>
                                                     </Card>
@@ -1048,6 +1053,3 @@ export default function ActivosPage() {
     </DashboardLayout>
   );
 }
-
-    
-    
