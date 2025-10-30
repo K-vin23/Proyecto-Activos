@@ -64,7 +64,7 @@ const companies = [
     companyId: 'FUNDIMETAL',
     name: 'FUNDIMETAL',
     city: 'Cali',
-    status: 'Inactive',
+    status: 'Active',
     avatarId: 'company-avatar',
   },
 ];
@@ -247,5 +247,4 @@ export default function EmpresasPage() {
     </DashboardLayout>
   );
 }
-
     
