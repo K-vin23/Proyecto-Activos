@@ -49,10 +49,10 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
           <SidebarContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive('/')} tooltip="Dashboard">
+                <SidebarMenuButton asChild isActive={isActive('/')} tooltip="Inicio">
                   <Link href="/">
                     <LayoutDashboard />
-                    <span>Dashboard</span>
+                    <span>Inicio</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
