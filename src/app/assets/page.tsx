@@ -11,8 +11,10 @@ import {
   DialogTrigger,
   DialogDescription,
   DialogClose,
+  DialogFooter,
 } from '@/components/ui/dialog';
-import { PlusCircle, X, Calendar as CalendarIcon, Trash2, ArrowLeft, Monitor, Zap, Laptop, ClipboardPlus, Eye } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { PlusCircle, X, Calendar as CalendarIcon, Trash2, ArrowLeft, Monitor, Zap, Laptop, ClipboardPlus, Eye, UserSwitch } from 'lucide-react';
 import DashboardLayout from '@/components/dashboard-layout';
 import Header from '@/components/dashboard/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -702,9 +704,11 @@ function AssetTypeSelector({ onSelect, onCancel }: { onSelect: (type: 'Equipo de
 }
 
 export default function ActivosPage() {
+  const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
-  const [selectedAssetIdForHistory, setSelectedAssetIdForHistory] = useState<string | null>(null);
+  const [isChangeOwnerOpen, setIsChangeOwnerOpen] = useState(false);
+  const [selectedAsset, setSelectedAsset] = useState<any | null>(null);
   const [selectedAssetType, setSelectedAssetType] = useState<'Equipo de cómputo' | 'Monitor' | 'UPS' | null>(null);
 
   const handleDialogChange = (open: boolean) => {
@@ -716,19 +720,39 @@ export default function ActivosPage() {
 
   const handleHistoryDialogChange = (open: boolean) => {
     if (!open) {
-        setSelectedAssetIdForHistory(null);
+        setSelectedAsset(null);
     }
     setIsHistoryDialogOpen(open);
   }
+
+  const handleChangeOwnerDialogChange = (open: boolean) => {
+    if (!open) {
+        setSelectedAsset(null);
+    }
+    setIsChangeOwnerOpen(open);
+  }
   
-  const handleOpenHistoryDialog = (assetId: string) => {
-    setSelectedAssetIdForHistory(assetId);
+  const handleOpenHistoryDialog = (asset: any) => {
+    setSelectedAsset(asset);
     setIsHistoryDialogOpen(true);
   };
+
+  const handleOpenChangeOwnerDialog = (asset: any) => {
+    setSelectedAsset(asset);
+    setIsChangeOwnerOpen(true);
+  }
 
   const handleRegisterSuccess = () => {
     setIsDialogOpen(false);
     setSelectedAssetType(null);
+  }
+
+  const handleDeleteAsset = (assetId: string) => {
+    console.log(`Deleting asset ${assetId}`);
+    toast({
+        title: 'Activo Dado de Baja',
+        description: `El activo ${assetId} ha sido movido a la papelera.`
+    });
   }
 
   return (
@@ -857,7 +881,7 @@ export default function ActivosPage() {
 
                                         <Tooltip>
                                             <TooltipTrigger asChild>
-                                                <Button variant="secondary" size="icon" onClick={() => handleOpenHistoryDialog(asset.id)}>
+                                                <Button variant="secondary" size="icon" onClick={() => handleOpenHistoryDialog(asset)}>
                                                     <ClipboardPlus className="h-4 w-4" />
                                                 </Button>
                                             </TooltipTrigger>
@@ -865,6 +889,46 @@ export default function ActivosPage() {
                                                 <p>Añadir Historial</p>
                                             </TooltipContent>
                                         </Tooltip>
+
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button variant="secondary" size="icon" onClick={() => handleOpenChangeOwnerDialog(asset)}>
+                                                    <UserSwitch className="h-4 w-4" />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Cambiar Responsable</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+
+                                        <AlertDialog>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button variant="destructive" size="icon">
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </AlertDialogTrigger>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>Dar de Baja</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    Esta acción moverá el activo <span className="font-semibold">{asset.id}</span> a la lista de activos eliminados. 
+                                                    Introduce el motivo de la baja.
+                                                </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <Textarea placeholder="Motivo de la baja (ej: dañado, obsoleto, etc.)" />
+                                                <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleDeleteAsset(asset.id)}>Confirmar Baja</AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
                                     </TooltipProvider>
                                 </TableCell>
                             </TableRow>
@@ -918,24 +982,60 @@ export default function ActivosPage() {
           </Tabs>
         </main>
       </div>
+
+      {/* Add History Dialog */}
       <Dialog open={isHistoryDialogOpen} onOpenChange={handleHistoryDialogChange}>
             <DialogContent className="w-[90vw] max-w-[90vw] md:w-full md:max-w-xl rounded-lg">
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-headline">Añadir Registro al Historial</DialogTitle>
                     <DialogDescription>
-                        Registra un nuevo mantenimiento o incidente para el activo {selectedAssetIdForHistory}.
+                        Registra un nuevo mantenimiento o incidente para el activo {selectedAsset?.id}.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="py-4">
-                    {selectedAssetIdForHistory && (
+                    {selectedAsset && (
                         <AddHistoryForm 
-                            assetId={selectedAssetIdForHistory} 
+                            assetId={selectedAsset.id} 
                             onSaveSuccess={() => handleHistoryDialogChange(false)} 
                         />
                     )}
                 </div>
             </DialogContent>
         </Dialog>
+
+        {/* Change Owner Dialog */}
+        <Dialog open={isChangeOwnerOpen} onOpenChange={handleChangeOwnerDialogChange}>
+            <DialogContent className="w-[90vw] max-w-[90vw] md:w-full md:max-w-md rounded-lg">
+                <DialogHeader>
+                    <DialogTitle className="text-2xl font-headline">Cambiar Responsable</DialogTitle>
+                    <DialogDescription>
+                        Selecciona el nuevo responsable para el activo {selectedAsset?.id}. 
+                        El responsable actual es {selectedAsset?.responsable}.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="py-4 space-y-4">
+                     <Select>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Selecciona un nuevo responsable" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {users.map(user => (
+                                <SelectItem key={user.id} value={user.name}>{user.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => handleChangeOwnerDialogChange(false)}>Cancelar</Button>
+                    <Button onClick={() => {
+                        toast({ title: "Responsable Cambiado", description: "El responsable del activo ha sido actualizado." });
+                        handleChangeOwnerDialogChange(false);
+                    }}>Guardar Cambio</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </DashboardLayout>
   );
 }
+
+    
