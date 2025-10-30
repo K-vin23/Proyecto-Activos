@@ -46,7 +46,7 @@ export default function Header() {
           <Button variant="secondary" size="icon" className="rounded-full">
             <Avatar className="h-8 w-8">
               <AvatarImage src={userAvatar?.imageUrl} data-ai-hint={userAvatar?.imageHint} />
-              <AvatarFallback>JD</AvatarFallback>
+              <AvatarFallback>WP</AvatarFallback>
             </Avatar>
             <span className="sr-only">Toggle user menu</span>
           </Button>

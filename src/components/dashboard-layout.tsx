@@ -102,14 +102,14 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
             <div className="flex items-center gap-3 p-2">
               <Avatar className="h-10 w-10">
                 <AvatarImage src={userAvatar?.imageUrl} data-ai-hint={userAvatar?.imageHint} />
-                <AvatarFallback>JD</AvatarFallback>
+                <AvatarFallback>WP</AvatarFallback>
               </Avatar>
               <div className="flex flex-col overflow-hidden">
                 <span className="text-sm font-semibold text-sidebar-foreground truncate">
-                  John Doe
+                  Washington Palma
                 </span>
                 <span className="text-xs text-sidebar-foreground/70 truncate">
-                  john.doe@example.com
+                  fminformaticaytecnologia@gmail.com
                 </span>
               </div>
             </div>
@@ -130,5 +130,3 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
 };
 
 export default DashboardLayout;
-
-    
