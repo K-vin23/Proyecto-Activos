@@ -69,12 +69,16 @@ const assets = [
     responsable: 'John Doe',
     serialNumber: 'DXG-12345-ABC',
     purchaseDate: '2023-01-15',
+    invoiceNumber: 'FV-2023-1234',
     brand: 'Dell',
     model: 'XPS 15',
     processor: 'Intel Core i7-11800H',
     ram: '16 GB DDR4',
     storage: '1 TB SSD NVMe',
     os: 'Windows 11 Pro',
+    osKey: 'XXXXX-XXXXX-XXXXX-XXXXX-ABCDE',
+    officeVersion: 'MICROSOFT OFFICE HOGAR Y EMPRESAS 2021',
+    officeKey: 'YYYYY-YYYYY-YYYYY-YYYYY-FGHIJ',
   },
   {
     id: 'MON-002',
@@ -85,6 +89,7 @@ const assets = [
     responsable: 'Almacén',
     serialNumber: 'LGM-98765-XYZ',
     purchaseDate: '2022-11-30',
+    invoiceNumber: 'FV-2022-5678',
     brand: 'LG',
     model: '29WL500-B',
   },
@@ -97,6 +102,7 @@ const assets = [
     responsable: 'Jane Smith',
     serialNumber: 'N/A',
     purchaseDate: '2024-03-01',
+    invoiceNumber: 'FV-2024-9101',
     brand: 'Adobe',
     model: 'Creative Cloud',
   },
@@ -865,12 +871,16 @@ export default function ActivosPage() {
                                                                 <div><span className="font-semibold">Responsable: </span>{asset.responsable}</div>
                                                                 <div><span className="font-semibold">Nº de Serie: </span>{asset.serialNumber}</div>
                                                                 <div><span className="font-semibold">Fecha Compra: </span>{asset.purchaseDate}</div>
+                                                                {asset.invoiceNumber && <div><span className="font-semibold">Nº Factura: </span>{asset.invoiceNumber}</div>}
                                                                 <div><span className="font-semibold">Marca: </span>{asset.brand}</div>
                                                                 <div><span className="font-semibold">Modelo: </span>{asset.model}</div>
                                                                 {asset.processor && <div><span className="font-semibold">Procesador: </span>{asset.processor}</div>}
                                                                 {asset.ram && <div><span className="font-semibold">RAM: </span>{asset.ram}</div>}
                                                                 {asset.storage && <div><span className="font-semibold">Almacenamiento: </span>{asset.storage}</div>}
                                                                 {asset.os && <div><span className="font-semibold">S.O.: </span>{asset.os}</div>}
+                                                                {asset.osKey && <div className="md:col-span-2"><span className="font-semibold">Clave S.O.: </span>{asset.osKey}</div>}
+                                                                {asset.officeVersion && <div className="md:col-span-1"><span className="font-semibold">Office: </span>{asset.officeVersion.replace('MICROSOFT OFFICE HOGAR Y EMPRESAS ', '')}</div>}
+                                                                {asset.officeKey && <div className="md:col-span-2"><span className="font-semibold">Clave Office: </span>{asset.officeKey}</div>}
                                                             </div>
                                                         </CardContent>
                                                     </Card>
