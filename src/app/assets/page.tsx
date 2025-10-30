@@ -658,7 +658,7 @@ function AssetForm({ assetType, onRegisterSuccess, onBack }: { assetType: 'Equip
                                     <Textarea
                                     placeholder="Cualquier detalle adicional sobre el activo..."
                                     className="resize-none"
-                                    {...field}
+                                    {...(field as any)}
                                     />
                                 </FormControl>
                                 <FormMessage />
@@ -865,25 +865,23 @@ export default function ActivosPage() {
                                                             <CardTitle className="text-xl">Especificaciones Técnicas</CardTitle>
                                                         </CardHeader>
                                                         <CardContent>
-                                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                                                                <div><span className="font-semibold">ID Activo: </span>{asset.id}</div>
-                                                                <div><span className="font-semibold">Categoría: </span>{asset.category}</div>
-                                                                <div><span className="font-semibold">Estado: </span>{asset.status}</div>
-                                                                <div><span className="font-semibold">Empresa: </span>{asset.company}</div>
-                                                                <div><span className="font-semibold">Responsable: </span>{asset.responsable}</div>
-                                                                <div><span className="font-semibold">Nº de Serie: </span>{asset.serialNumber}</div>
-                                                                <div><span className="font-semibold">Fecha Compra: </span>{asset.purchaseDate}</div>
-                                                                {asset.invoiceNumber && <div><span className="font-semibold">Nº Factura: </span>{asset.invoiceNumber}</div>}
-                                                                <div><span className="font-semibold">Marca: </span>{asset.brand}</div>
-                                                                <div><span className="font-semibold">Modelo: </span>{asset.model}</div>
-                                                                {asset.processor && <div><span className="font-semibold">Procesador: </span>{asset.processor}</div>}
-                                                                {asset.ram && <div><span className="font-semibold">RAM: </span>{asset.ram}</div>}
-                                                                {asset.storage && <div><span className="font-semibold">Almacenamiento: </span>{asset.storage}</div>}
-                                                                {asset.os && <div className="md:col-span-1"><span className="font-semibold">S.O.: </span>{asset.os}</div>}
-                                                                {asset.osKey && <div className="md:col-span-2"><span className="font-semibold">Clave S.O.: </span>{asset.osKey}</div>}
-                                                                {asset.officeVersion && <div className="md:col-span-1"><span className="font-semibold">Office: </span>{asset.officeVersion.replace('MICROSOFT OFFICE HOGAR Y EMPRESAS ', '')}</div>}
-                                                                {asset.officeKey && <div className="md:col-span-2"><span className="font-semibold">Clave Office: </span>{asset.officeKey}</div>}
-                                                                {asset.description && <div className="md:col-span-3"><span className="font-semibold">Descripción: </span>{asset.description}</div>}
+                                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                                                <div className="md:col-span-1"><span className="font-semibold">ID Activo: </span>{asset.id}</div>
+                                                                <div className="md:col-span-1"><span className="font-semibold">Categoría: </span>{asset.category}</div>
+                                                                <div className="md:col-span-1"><span className="font-semibold">Estado: </span>{asset.status}</div>
+                                                                <div className="md:col-span-1"><span className="font-semibold">Empresa: </span>{asset.company}</div>
+                                                                <div className="md:col-span-1"><span className="font-semibold">Responsable: </span>{asset.responsable}</div>
+                                                                <div className="md:col-span-1"><span className="font-semibold">Nº de Serie: </span>{asset.serialNumber}</div>
+                                                                <div className="md:col-span-1"><span className="font-semibold">Fecha Compra: </span>{asset.purchaseDate}</div>
+                                                                {asset.invoiceNumber && <div className="md:col-span-1"><span className="font-semibold">Nº Factura: </span>{asset.invoiceNumber}</div>}
+                                                                <div className="md:col-span-1"><span className="font-semibold">Marca: </span>{asset.brand}</div>
+                                                                <div className="md:col-span-1"><span className="font-semibold">Modelo: </span>{asset.model}</div>
+                                                                {asset.processor && <div className="md:col-span-1"><span className="font-semibold">Procesador: </span>{asset.processor}</div>}
+                                                                {asset.ram && <div className="md:col-span-1"><span className="font-semibold">RAM: </span>{asset.ram}</div>}
+                                                                {asset.storage && <div className="md:col-span-1"><span className="font-semibold">Almacenamiento: </span>{asset.storage}</div>}
+                                                                {asset.os && asset.osKey && <div className="md:col-span-2"><span className="font-semibold">S.O.: </span>{asset.os} ({asset.osKey})</div>}
+                                                                {asset.officeVersion && asset.officeKey && <div className="md:col-span-2"><span className="font-semibold">Office: </span>{asset.officeVersion.replace('MICROSOFT OFFICE HOGAR Y EMPRESAS ', '')} ({asset.officeKey})</div>}
+                                                                {asset.description && <div className="md:col-span-4"><span className="font-semibold">Descripción: </span>{asset.description}</div>}
                                                             </div>
                                                         </CardContent>
                                                     </Card>
@@ -1051,4 +1049,5 @@ export default function ActivosPage() {
   );
 }
 
+    
     
