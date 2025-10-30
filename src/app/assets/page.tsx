@@ -67,6 +67,7 @@ const assets = [
     status: 'Asignado',
     company: 'PALLOMARO S.A',
     responsable: 'John Doe',
+    city: 'Bogotá',
     serialNumber: 'DXG-12345-ABC',
     purchaseDate: '2023-01-15',
     invoiceNumber: 'FV-2023-1234',
@@ -87,6 +88,7 @@ const assets = [
     status: 'En Almacén',
     company: 'HYCO',
     responsable: 'Almacén',
+    city: 'Medellín',
     serialNumber: 'LGM-98765-XYZ',
     purchaseDate: '2022-11-30',
     invoiceNumber: 'FV-2022-5678',
@@ -101,6 +103,7 @@ const assets = [
     status: 'Asignado',
     company: 'FUNDIMETAL',
     responsable: 'Jane Smith',
+    city: 'Cali',
     serialNumber: 'APC-91011-JKL',
     purchaseDate: '2024-03-01',
     invoiceNumber: 'FV-2024-9101',
@@ -884,6 +887,7 @@ export default function ActivosPage() {
                                                                 {asset.invoiceNumber && <div className="md:col-span-1"><span className="font-semibold">Nº Factura: </span>{asset.invoiceNumber}</div>}
                                                                 <div className="md:col-span-1"><span className="font-semibold">Marca: </span>{asset.brand}</div>
                                                                 <div className="md:col-span-1"><span className="font-semibold">Modelo: </span>{asset.model}</div>
+                                                                <div className="md:col-span-1"><span className="font-semibold">Ciudad: </span>{asset.city}</div>
                                                                 {asset.processor && <div className="md:col-span-1"><span className="font-semibold">Procesador: </span>{asset.processor}</div>}
                                                                 {asset.ram && <div className="md:col-span-1"><span className="font-semibold">RAM: </span>{asset.ram}</div>}
                                                                 {asset.storage && <div className="md:col-span-1"><span className="font-semibold">Almacenamiento: </span>{asset.storage}</div>}
@@ -1062,3 +1066,4 @@ export default function ActivosPage() {
   );
 }
 
+    
