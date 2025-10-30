@@ -33,25 +33,25 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 const users = [
   {
     id: 1,
-    name: 'John Doe',
-    email: 'john.doe@example.com',
+    name: 'Johana Fuentes',
+    email: 'J_fuentes@pallomaro.com',
     role: 'Admin',
     status: 'Active',
     avatarId: 'user-avatar',
   },
   {
     id: 2,
-    name: 'Jane Smith',
-    email: 'jane.smith@example.com',
-    role: 'User',
-    status: 'Inactive',
+    name: 'Claudia Moreno',
+    email: 'C_moreno@hyco.co.com',
+    role: 'Admin',
+    status: 'Active',
     avatarId: 'user-avatar',
   },
   {
     id: 3,
-    name: 'Robert Brown',
-    email: 'robert.brown@example.com',
-    role: 'User',
+    name: 'Wilson Rojas',
+    email: 'Wilson_r@fundimetal.com',
+    role: 'Admin',
     status: 'Active',
     avatarId: 'user-avatar',
   },
@@ -72,6 +72,15 @@ const companies = [
       name: 'FUNDIMETAL',
     },
 ];
+
+const getInitials = (name: string) => {
+    const names = name.split(' ');
+    if (names.length > 1) {
+        return `${names[0][0]}${names[1][0]}`.toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+}
+
 
 export default function UsersPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -127,7 +136,7 @@ export default function UsersPage() {
                         <TableCell>
                           <div className="flex items-center gap-3">
                              <Avatar className="h-9 w-9">
-                                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
                              </Avatar>
                              <div className="grid gap-0.5">
                                 <p className="font-medium">{user.name}</p>
