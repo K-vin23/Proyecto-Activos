@@ -92,6 +92,7 @@ const assets = [
     invoiceNumber: 'FV-2022-5678',
     brand: 'LG',
     model: '29WL500-B',
+    description: 'Monitor con resolución 2560x1080.',
   },
   {
     id: 'UPS-001',
@@ -105,6 +106,7 @@ const assets = [
     invoiceNumber: 'FV-2024-9101',
     brand: 'APC',
     model: 'Smart-UPS 1500',
+    description: 'Batería reemplazada en Enero 2024.',
   },
 ];
 
@@ -139,6 +141,8 @@ const computerAssetSchema = z.object({
   processor: z.string().min(1, 'El procesador es requerido.'),
   ram: z.string().min(1, 'La memoria RAM es requerida.'),
   storage: z.string().min(1, 'El disco duro es requerido.'),
+  os: z.enum(['Windows 10 Pro', 'Windows 11 Pro']),
+  osKey: z.string().optional(),
   officeVersion: z.enum([
     'MICROSOFT OFFICE HOGAR Y EMPRESAS 2007',
     'MICROSOFT OFFICE HOGAR Y EMPRESAS 2010',
@@ -149,8 +153,6 @@ const computerAssetSchema = z.object({
     'MICROSOFT OFFICE HOGAR Y EMPRESAS 2024 - ES-ES'
   ]),
   officeKey: z.string().optional(),
-  os: z.enum(['Windows 10 Pro', 'Windows 11 Pro']),
-  osKey: z.string().optional(),
 });
 
 
@@ -877,10 +879,11 @@ export default function ActivosPage() {
                                                                 {asset.processor && <div><span className="font-semibold">Procesador: </span>{asset.processor}</div>}
                                                                 {asset.ram && <div><span className="font-semibold">RAM: </span>{asset.ram}</div>}
                                                                 {asset.storage && <div><span className="font-semibold">Almacenamiento: </span>{asset.storage}</div>}
-                                                                {asset.os && <div><span className="font-semibold">S.O.: </span>{asset.os}</div>}
+                                                                {asset.os && <div className="md:col-span-1"><span className="font-semibold">S.O.: </span>{asset.os}</div>}
                                                                 {asset.osKey && <div className="md:col-span-2"><span className="font-semibold">Clave S.O.: </span>{asset.osKey}</div>}
                                                                 {asset.officeVersion && <div className="md:col-span-1"><span className="font-semibold">Office: </span>{asset.officeVersion.replace('MICROSOFT OFFICE HOGAR Y EMPRESAS ', '')}</div>}
                                                                 {asset.officeKey && <div className="md:col-span-2"><span className="font-semibold">Clave Office: </span>{asset.officeKey}</div>}
+                                                                {asset.description && <div className="md:col-span-3"><span className="font-semibold">Descripción: </span>{asset.description}</div>}
                                                             </div>
                                                         </CardContent>
                                                     </Card>
@@ -1047,3 +1050,5 @@ export default function ActivosPage() {
     </DashboardLayout>
   );
 }
+
+    
