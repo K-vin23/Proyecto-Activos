@@ -25,7 +25,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
-import { CalendarIcon, Search, Download } from 'lucide-react';
+import { CalendarIcon, Search, Download, X } from 'lucide-react';
 import { format } from 'date-fns';
 import DashboardLayout from '@/components/dashboard-layout';
 import Header from '@/components/dashboard/header';
@@ -340,4 +340,3 @@ export default function ReportsPage() {
     </DashboardLayout>
   );
 }
-
