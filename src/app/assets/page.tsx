@@ -14,7 +14,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { PlusCircle, X, Calendar as CalendarIcon, Trash2, ArrowLeft, Monitor, Zap, Laptop, ClipboardPlus, Eye, Replace } from 'lucide-react';
+import { PlusCircle, X, Calendar as CalendarIcon, Trash2, ArrowLeft, Monitor, Zap, Laptop, ClipboardPlus, Eye, Replace, Download } from 'lucide-react';
 import DashboardLayout from '@/components/dashboard-layout';
 import Header from '@/components/dashboard/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -854,10 +854,18 @@ export default function ActivosPage() {
                                             </Tooltip>
                                             <DialogContent className="w-[90vw] max-w-[90vw] md:w-full md:max-w-4xl rounded-lg max-h-[90vh] overflow-y-auto">
                                                 <DialogHeader>
-                                                    <DialogTitle className="text-2xl font-headline">Detalles del Activo: {asset.name}</DialogTitle>
-                                                    <DialogDescription>
-                                                        Información completa y registros de mantenimiento.
-                                                    </DialogDescription>
+                                                    <div className="flex items-center justify-between">
+                                                        <div>
+                                                            <DialogTitle className="text-2xl font-headline">Detalles del Activo: {asset.name}</DialogTitle>
+                                                            <DialogDescription>
+                                                                Información completa y registros de mantenimiento.
+                                                            </DialogDescription>
+                                                        </div>
+                                                        <Button variant="outline">
+                                                            <Download className="mr-2 h-4 w-4" />
+                                                            Descargar PDF
+                                                        </Button>
+                                                    </div>
                                                 </DialogHeader>
                                                 <div className="py-4 space-y-6">
                                                     <Card>
@@ -1053,3 +1061,4 @@ export default function ActivosPage() {
     </DashboardLayout>
   );
 }
+
