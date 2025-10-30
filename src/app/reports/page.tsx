@@ -39,10 +39,17 @@ const users = [
     { id: '4', name: 'Almacén' },
 ];
 
+const companies = [
+    { id: 1, name: 'PALLOMARO S.A' },
+    { id: 2, name: 'HYCO' },
+    { id: 3, name: 'FUNDIMETAL' },
+  ];
+
 const reportFiltersSchema = z.object({
   assetName: z.string().optional(),
   serialNumber: z.string().optional(),
   responsable: z.string().optional(),
+  company: z.string().optional(),
   assetCategory: z.string().optional(),
   brand: z.string().optional(),
   model: z.string().optional(),
@@ -64,6 +71,7 @@ export default function ReportsPage() {
         assetName: '',
         serialNumber: '',
         responsable: '',
+        company: '',
         assetCategory: '',
         brand: '',
         model: '',
@@ -98,7 +106,7 @@ export default function ReportsPage() {
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)}>
                 <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <FormField
                       control={form.control}
                       name="assetName"
@@ -140,6 +148,28 @@ export default function ReportsPage() {
                             <SelectContent>
                               {users.map(user => (
                                 <SelectItem key={user.id} value={user.name}>{user.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                     <FormField
+                      control={form.control}
+                      name="company"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Empresa</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Todas" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {companies.map(company => (
+                                <SelectItem key={company.id} value={company.name}>{company.name}</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
@@ -339,7 +369,7 @@ export default function ReportsPage() {
                                             <SelectContent>
                                                 <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2007">Office 2007</SelectItem>
                                                 <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2010">Office 2010</SelectItem>
-                                                <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2013">Office 2013</SelectItem>
+                                                <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESas 2013">Office 2013</SelectItem>
                                                 <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2016">Office 2016</SelectItem>
                                                 <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2019">Office 2019</SelectItem>
                                                 <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2021">Office 2021</SelectItem>
@@ -378,3 +408,5 @@ export default function ReportsPage() {
     </DashboardLayout>
   );
 }
+
+    

@@ -12,7 +12,7 @@ import {
   DialogDescription,
   DialogClose,
 } from '@/components/ui/dialog';
-import { PlusCircle, X, Calendar as CalendarIcon, Trash2, ArrowLeft, Monitor, Zap, Laptop } from 'lucide-react';
+import { PlusCircle, X, Calendar as CalendarIcon, Trash2, ArrowLeft, Monitor, Zap, Laptop, ClipboardPlus, Eye } from 'lucide-react';
 import DashboardLayout from '@/components/dashboard-layout';
 import Header from '@/components/dashboard/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -52,6 +52,7 @@ import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
+import AssetHistory from '@/components/dashboard/asset-history';
 
 // Mock data for assets
 const assets = [
@@ -660,7 +661,7 @@ export default function ActivosPage() {
                             <TableHead>Categoría</TableHead>
                             <TableHead>Empresa</TableHead>
                             <TableHead>Estado</TableHead>
-                            <TableHead>Acciones</TableHead>
+                            <TableHead className="text-right">Acciones</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -675,10 +676,30 @@ export default function ActivosPage() {
                                     {asset.status}
                                 </Badge>
                                 </TableCell>
-                                <TableCell>
-                                <Button variant="outline" size="sm">
-                                    Ver Detalles
-                                </Button>
+                                <TableCell className="flex justify-end gap-2">
+                                  <Dialog>
+                                      <DialogTrigger asChild>
+                                          <Button variant="outline" size="sm">
+                                              <Eye className="mr-2 h-4 w-4" />
+                                              Ver Equipo
+                                          </Button>
+                                      </DialogTrigger>
+                                      <DialogContent className="w-[90vw] max-w-[90vw] md:w-full md:max-w-4xl rounded-lg max-h-[90vh] overflow-y-auto">
+                                          <DialogHeader>
+                                              <DialogTitle className="text-2xl font-headline">Detalles del Activo: {asset.name}</DialogTitle>
+                                              <DialogDescription>
+                                                  Información completa y registros de mantenimiento.
+                                              </DialogDescription>
+                                          </DialogHeader>
+                                          <div className="py-4">
+                                            <AssetHistory assetId={asset.id}/>
+                                          </div>
+                                      </DialogContent>
+                                  </Dialog>
+                                  <Button variant="secondary" size="sm">
+                                      <ClipboardPlus className="mr-2 h-4 w-4" />
+                                      Añadir Historial
+                                  </Button>
                                 </TableCell>
                             </TableRow>
                             ))}
@@ -734,3 +755,5 @@ export default function ActivosPage() {
     </DashboardLayout>
   );
 }
+
+    
