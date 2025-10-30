@@ -62,8 +62,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 const assets = [
   {
     id: 'LAP-001',
-    name: 'Laptop Dell XPS 15',
-    category: 'Computadores',
+    name: 'Laptop Dell Latitude 5420',
+    category: 'Equipo de cómputo',
     status: 'Asignado',
     company: 'PALLOMARO S.A',
     responsable: 'John Doe',
@@ -71,7 +71,7 @@ const assets = [
     purchaseDate: '2023-01-15',
     invoiceNumber: 'FV-2023-1234',
     brand: 'Dell',
-    model: 'XPS 15',
+    model: 'Latitude 5420',
     processor: 'Intel Core i7-11800H',
     ram: '16 GB DDR4',
     storage: '1 TB SSD NVMe',
@@ -83,7 +83,7 @@ const assets = [
   {
     id: 'MON-002',
     name: 'Monitor LG UltraWide 29"',
-    category: 'Monitores',
+    category: 'Monitor',
     status: 'En Almacén',
     company: 'HYCO',
     responsable: 'Almacén',
@@ -94,17 +94,17 @@ const assets = [
     model: '29WL500-B',
   },
   {
-    id: 'SFT-003',
-    name: 'Licencia Adobe Creative Cloud',
-    category: 'Software',
+    id: 'UPS-001',
+    name: 'UPS APC 1500VA',
+    category: 'UPS',
     status: 'Asignado',
-    company: 'PALLOMARO S.A',
+    company: 'FUNDIMETAL',
     responsable: 'Jane Smith',
-    serialNumber: 'N/A',
+    serialNumber: 'APC-91011-JKL',
     purchaseDate: '2024-03-01',
     invoiceNumber: 'FV-2024-9101',
-    brand: 'Adobe',
-    model: 'Creative Cloud',
+    brand: 'APC',
+    model: 'Smart-UPS 1500',
   },
 ];
 
