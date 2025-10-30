@@ -170,6 +170,7 @@ export default function UsersPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Usuario</TableHead>
+                      <TableHead>Empresa</TableHead>
                       <TableHead>Rol</TableHead>
                       <TableHead>Estado</TableHead>
                       <TableHead className="text-right">Acciones</TableHead>
@@ -189,6 +190,7 @@ export default function UsersPage() {
                              </div>
                           </div>
                         </TableCell>
+                        <TableCell>{user.company}</TableCell>
                         <TableCell>{user.role}</TableCell>
                         <TableCell>
                           <Badge variant={user.status === 'Active' ? 'default' : 'destructive'}>
