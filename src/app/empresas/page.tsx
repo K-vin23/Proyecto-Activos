@@ -12,7 +12,8 @@ import {
   DialogDescription,
   DialogClose,
 } from '@/components/ui/dialog';
-import { PlusCircle, X } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { PlusCircle, X, Pencil, Trash2 } from 'lucide-react';
 import DashboardLayout from '@/components/dashboard-layout';
 import Header from '@/components/dashboard/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,8 +26,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -40,16 +40,17 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+
 
 // Mock data for companies
-const companies = [
+const initialCompanies = [
   {
     id: 1,
     companyId: 'PALLOMARO',
     name: 'PALLOMARO S.A',
     city: 'Cali',
     status: 'Active',
-    avatarId: 'company-avatar',
   },
   {
     id: 2,
@@ -57,7 +58,6 @@ const companies = [
     name: 'HYCO',
     city: 'Cali',
     status: 'Active',
-    avatarId: 'company-avatar',
   },
   {
     id: 3,
@@ -65,7 +65,6 @@ const companies = [
     name: 'FUNDIMETAL',
     city: 'Cali',
     status: 'Active',
-    avatarId: 'company-avatar',
   },
 ];
 
@@ -77,12 +76,13 @@ const companySchema = z.object({
 
 type CompanySchema = z.infer<typeof companySchema>;
 
-function CompanyForm({ onRegisterSuccess }: { onRegisterSuccess?: () => void }) {
+function CompanyForm({ onSaveSuccess, companyToEdit }: { onSaveSuccess?: () => void, companyToEdit?: CompanySchema | null }) {
   const { toast } = useToast();
+  const isEditMode = !!companyToEdit;
 
   const form = useForm<CompanySchema>({
     resolver: zodResolver(companySchema),
-    defaultValues: {
+    defaultValues: companyToEdit || {
       companyId: '',
       name: '',
       city: '',
@@ -91,21 +91,29 @@ function CompanyForm({ onRegisterSuccess }: { onRegisterSuccess?: () => void }) 
 
   function onSubmit(data: CompanySchema) {
     try {
-      console.log('Company data submitted:', data);
-      toast({
-        title: 'Registro Exitoso',
-        description: 'La empresa ha sido registrada correctamente.',
-      });
+      if(isEditMode) {
+        console.log('Company data updated:', data);
+        toast({
+          title: 'Actualización Exitosa',
+          description: 'La empresa ha sido actualizada correctamente.',
+        });
+      } else {
+        console.log('Company data submitted:', data);
+        toast({
+          title: 'Registro Exitoso',
+          description: 'La empresa ha sido registrada correctamente.',
+        });
+      }
       form.reset();
-      if (onRegisterSuccess) {
-        onRegisterSuccess();
+      if (onSaveSuccess) {
+        onSaveSuccess();
       }
     } catch (error) {
-      console.error('Error during registration:', error);
+      console.error('Error during operation:', error);
       toast({
         variant: 'destructive',
-        title: 'Error de Registro',
-        description: 'No se pudo registrar la empresa. Inténtalo de nuevo.',
+        title: 'Error',
+        description: `No se pudo ${isEditMode ? 'actualizar' : 'registrar'} la empresa. Inténtalo de nuevo.`,
       });
     }
   }
@@ -153,7 +161,7 @@ function CompanyForm({ onRegisterSuccess }: { onRegisterSuccess?: () => void }) 
           )}
         />
         <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
-          Registrar Empresa
+          {isEditMode ? 'Guardar Cambios' : 'Registrar Empresa'}
         </Button>
       </form>
     </Form>
@@ -161,8 +169,33 @@ function CompanyForm({ onRegisterSuccess }: { onRegisterSuccess?: () => void }) 
 }
 
 export default function EmpresasPage() {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const companyAvatar = PlaceHolderImages.find((img) => img.id === 'company-avatar');
+  const [companies, setCompanies] = useState(initialCompanies);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [companyToEdit, setCompanyToEdit] = useState<any | null>(null);
+
+  const { toast } = useToast();
+
+  const handleEditClick = (company: any) => {
+    setCompanyToEdit(company);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDeleteClick = (companyId: number) => {
+    // In a real app, you'd call an API here
+    setCompanies(companies.filter(c => c.id !== companyId));
+    toast({
+        title: 'Empresa Eliminada',
+        description: 'La empresa ha sido eliminada correctamente.',
+    });
+  }
+
+  const handleSaveSuccess = () => {
+    setIsCreateDialogOpen(false);
+    setIsEditDialogOpen(false);
+    setCompanyToEdit(null);
+    // Here you would refetch the data from your backend
+  };
 
   return (
     <DashboardLayout>
@@ -171,7 +204,7 @@ export default function EmpresasPage() {
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold font-headline tracking-tight">Empresas</h1>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
                   <PlusCircle className="mr-2 h-4 w-4" />
@@ -179,13 +212,13 @@ export default function EmpresasPage() {
                 </Button>
               </DialogTrigger>
               <DialogContent className="w-[90vw] max-w-[90vw] md:w-full md:max-w-md rounded-lg max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle className="text-2xl font-headline text-center pt-12">Crear nueva empresa</DialogTitle>
+                <DialogHeader className="p-6 pb-0">
+                  <DialogTitle className="text-2xl font-headline text-center">Crear nueva empresa</DialogTitle>
                   <DialogDescription className="text-center">
                     Introduce los datos para registrar una nueva empresa.
                   </DialogDescription>
                 </DialogHeader>
-                <CompanyForm onRegisterSuccess={() => setIsDialogOpen(false)} />
+                <CompanyForm onSaveSuccess={handleSaveSuccess} />
                  <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
                     <X className="h-4 w-4" />
                     <span className="sr-only">Close</span>
@@ -206,7 +239,7 @@ export default function EmpresasPage() {
                       <TableHead>ID Empresa</TableHead>
                       <TableHead>Ciudad</TableHead>
                       <TableHead>Estado</TableHead>
-                      <TableHead>Acciones</TableHead>
+                      <TableHead className="text-right">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -215,7 +248,6 @@ export default function EmpresasPage() {
                         <TableCell>
                           <div className="flex items-center gap-3">
                              <Avatar className="h-9 w-9">
-                                <AvatarImage src={companyAvatar?.imageUrl} data-ai-hint={companyAvatar?.imageHint} />
                                 <AvatarFallback>{company.name.charAt(0)}</AvatarFallback>
                              </Avatar>
                              <div className="grid gap-0.5">
@@ -230,10 +262,48 @@ export default function EmpresasPage() {
                             {company.status}
                           </Badge>
                         </TableCell>
-                        <TableCell>
-                          <Button variant="outline" size="sm">
-                            Editar
-                          </Button>
+                        <TableCell className="text-right">
+                           <TooltipProvider>
+                                <div className="flex justify-end gap-2">
+                                     <Tooltip>
+                                        <TooltipTrigger asChild>
+                                           <Button variant="outline" size="icon" onClick={() => handleEditClick(company)}>
+                                                <Pencil className="h-4 w-4" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Editar Empresa</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+
+                                    <AlertDialog>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <AlertDialogTrigger asChild>
+                                                     <Button variant="destructive" size="icon">
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </AlertDialogTrigger>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Eliminar Empresa</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Esta acción no se puede deshacer. Se eliminará permanentemente la empresa <span className="font-semibold">{company.name}</span>.
+                                            </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => handleDeleteClick(company.id)}>Confirmar</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </div>
+                           </TooltipProvider>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -244,6 +314,24 @@ export default function EmpresasPage() {
           </Card>
         </main>
       </div>
+      
+      {/* Edit Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="w-[90vw] max-w-[90vw] md:w-full md:max-w-md rounded-lg max-h-[90vh] overflow-y-auto">
+            <DialogHeader className="p-6 pb-0">
+                <DialogTitle className="text-2xl font-headline text-center">Editar empresa</DialogTitle>
+                <DialogDescription className="text-center">
+                    Modifica los datos de la empresa.
+                </DialogDescription>
+            </DialogHeader>
+            <CompanyForm onSaveSuccess={handleSaveSuccess} companyToEdit={companyToEdit} />
+            <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+                <X className="h-4 w-4" />
+                <span className="sr-only">Close</span>
+            </DialogClose>
+        </DialogContent>
+      </Dialog>
+
     </DashboardLayout>
   );
 }

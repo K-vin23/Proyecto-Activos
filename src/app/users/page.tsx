@@ -12,7 +12,8 @@ import {
   DialogDescription,
   DialogClose,
 } from '@/components/ui/dialog';
-import { PlusCircle, X } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { PlusCircle, X, Pencil, Trash2 } from 'lucide-react';
 import RegisterForm from '@/components/auth/register-form';
 import DashboardLayout from '@/components/dashboard-layout';
 import Header from '@/components/dashboard/header';
@@ -26,18 +27,25 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { useToast } from '@/hooks/use-toast';
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 // Mock data for users
-const users = [
+const initialUsers = [
   {
     id: 1,
     name: 'Johana Fuentes',
     email: 'J_fuentes@pallomaro.com',
     role: 'Admin',
     status: 'Active',
-    avatarId: 'user-avatar',
+    company: 'PALLOMARO S.A',
+    idNumber: '111111111',
+    firstName: 'Johana',
+    lastName: 'Fuentes',
+    city: 'Cali',
+    location: 'Sede Principal',
+    department: 'Tecnología',
   },
   {
     id: 2,
@@ -45,7 +53,13 @@ const users = [
     email: 'C_moreno@hyco.co.com',
     role: 'Admin',
     status: 'Active',
-    avatarId: 'user-avatar',
+    company: 'HYCO',
+    idNumber: '222222222',
+    firstName: 'Claudia',
+    lastName: 'Moreno',
+    city: 'Cali',
+    location: 'Oficina Central',
+    department: 'Gerencia',
   },
   {
     id: 3,
@@ -53,7 +67,13 @@ const users = [
     email: 'Wilson_r@fundimetal.com',
     role: 'Admin',
     status: 'Active',
-    avatarId: 'user-avatar',
+    company: 'FUNDIMETAL',
+    idNumber: '333333333',
+    firstName: 'Wilson',
+    lastName: 'Rojas',
+    city: 'Cali',
+    location: 'Planta',
+    department: 'Operaciones',
   },
 ];
 
@@ -74,6 +94,7 @@ const companies = [
 ];
 
 const getInitials = (name: string) => {
+    if (!name) return '';
     const names = name.split(' ');
     if (names.length > 1) {
         return `${names[0][0]}${names[1][0]}`.toUpperCase();
@@ -83,8 +104,32 @@ const getInitials = (name: string) => {
 
 
 export default function UsersPage() {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
+  const [users, setUsers] = useState(initialUsers);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [userToEdit, setUserToEdit] = useState<any | null>(null);
+  const { toast } = useToast();
+
+  const handleEditClick = (user: any) => {
+    setUserToEdit(user);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDeleteClick = (userId: number, userName: string) => {
+    // In a real app, you'd call an API here
+    setUsers(users.filter(u => u.id !== userId));
+    toast({
+        title: 'Usuario Eliminado',
+        description: `El usuario ${userName} ha sido eliminado.`,
+    });
+  };
+
+  const handleSaveSuccess = () => {
+    setIsCreateDialogOpen(false);
+    setIsEditDialogOpen(false);
+    setUserToEdit(null);
+    // Here you would refetch the data from your backend
+  };
 
   return (
     <DashboardLayout>
@@ -93,7 +138,7 @@ export default function UsersPage() {
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold font-headline tracking-tight">Usuarios</h1>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
                   <PlusCircle className="mr-2 h-4 w-4" />
@@ -101,13 +146,13 @@ export default function UsersPage() {
                 </Button>
               </DialogTrigger>
               <DialogContent className="w-[90vw] max-w-[90vw] md:w-full md:max-w-3xl rounded-lg max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle className="text-2xl font-headline text-center pt-12">Crear una cuenta</DialogTitle>
+                <DialogHeader className="p-6 pb-0">
+                  <DialogTitle className="text-2xl font-headline text-center">Crear una cuenta</DialogTitle>
                   <DialogDescription className="text-center">
                     Introduce los datos para registrar un nuevo usuario en el sistema.
                   </DialogDescription>
                 </DialogHeader>
-                <RegisterForm onRegisterSuccess={() => setIsDialogOpen(false)} companies={companies} />
+                <RegisterForm onRegisterSuccess={handleSaveSuccess} companies={companies} />
                  <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
                     <X className="h-4 w-4" />
                     <span className="sr-only">Close</span>
@@ -127,7 +172,7 @@ export default function UsersPage() {
                       <TableHead>Usuario</TableHead>
                       <TableHead>Rol</TableHead>
                       <TableHead>Estado</TableHead>
-                      <TableHead>Acciones</TableHead>
+                      <TableHead className="text-right">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -150,10 +195,48 @@ export default function UsersPage() {
                             {user.status}
                           </Badge>
                         </TableCell>
-                        <TableCell>
-                          <Button variant="outline" size="sm">
-                            Editar
-                          </Button>
+                        <TableCell className="text-right">
+                          <TooltipProvider>
+                                <div className="flex justify-end gap-2">
+                                     <Tooltip>
+                                        <TooltipTrigger asChild>
+                                           <Button variant="outline" size="icon" onClick={() => handleEditClick(user)}>
+                                                <Pencil className="h-4 w-4" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Editar Usuario</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+
+                                    <AlertDialog>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <AlertDialogTrigger asChild>
+                                                     <Button variant="destructive" size="icon">
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </AlertDialogTrigger>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Eliminar Usuario</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Esta acción no se puede deshacer. Se eliminará permanentemente al usuario <span className="font-semibold">{user.name}</span>.
+                                            </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => handleDeleteClick(user.id, user.name)}>Confirmar</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </div>
+                           </TooltipProvider>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -164,6 +247,23 @@ export default function UsersPage() {
           </Card>
         </main>
       </div>
+
+      {/* Edit User Dialog */}
+       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            <DialogContent className="w-[90vw] max-w-[90vw] md:w-full md:max-w-3xl rounded-lg max-h-[90vh] overflow-y-auto">
+                <DialogHeader className="p-6 pb-0">
+                  <DialogTitle className="text-2xl font-headline text-center">Editar usuario</DialogTitle>
+                  <DialogDescription className="text-center">
+                    Modifica los datos del usuario. La contraseña no se puede editar aquí.
+                  </DialogDescription>
+                </DialogHeader>
+                <RegisterForm onRegisterSuccess={handleSaveSuccess} companies={companies} userToEdit={userToEdit} />
+                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">Close</span>
+                </DialogClose>
+              </DialogContent>
+        </Dialog>
     </DashboardLayout>
   );
 }

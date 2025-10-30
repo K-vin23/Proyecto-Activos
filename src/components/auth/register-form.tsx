@@ -28,14 +28,16 @@ const onRegister = (data: RegisterSchema) => {
 interface RegisterFormProps {
     onRegisterSuccess?: () => void;
     companies: { id: number; name: string }[];
+    userToEdit?: Partial<RegisterSchema> | null;
 }
 
-export default function RegisterForm({ onRegisterSuccess, companies }: RegisterFormProps) {
+export default function RegisterForm({ onRegisterSuccess, companies, userToEdit }: RegisterFormProps) {
   const { toast } = useToast();
+  const isEditMode = !!userToEdit;
 
   const form = useForm<RegisterSchema>({
     resolver: zodResolver(registerSchema),
-    defaultValues: {
+    defaultValues: userToEdit || {
       company: "",
       idNumber: "",
       firstName: "",
@@ -52,21 +54,29 @@ export default function RegisterForm({ onRegisterSuccess, companies }: RegisterF
 
   function onSubmit(data: RegisterSchema) {
     try {
-      onRegister(data);
-      toast({
-        title: "Registro Exitoso",
-        description: "El usuario ha sido registrado correctamente.",
-      });
+      if (isEditMode) {
+        console.log("User data updated:", data);
+         toast({
+          title: "Actualización Exitosa",
+          description: "El usuario ha sido actualizado correctamente.",
+        });
+      } else {
+        onRegister(data);
+        toast({
+          title: "Registro Exitoso",
+          description: "El usuario ha sido registrado correctamente.",
+        });
+      }
       form.reset();
       if (onRegisterSuccess) {
         onRegisterSuccess();
       }
     } catch (error) {
-       console.error("Error during registration:", error);
+       console.error("Error during operation:", error);
        toast({
         variant: "destructive",
-        title: "Error de Registro",
-        description: "No se pudo registrar el usuario. Inténtalo de nuevo.",
+        title: `Error de ${isEditMode ? 'Actualización' : 'Registro'}`,
+        description: `No se pudo ${isEditMode ? 'actualizar' : 'registrar'} el usuario. Inténtalo de nuevo.`,
       });
     }
   }
@@ -217,23 +227,25 @@ export default function RegisterForm({ onRegisterSuccess, companies }: RegisterF
                     </FormItem>
                 )}
                 />
-            <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                <FormLabel>Contraseña</FormLabel>
-                <FormControl>
-                    <Input type="password" placeholder="********" {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
+            {!isEditMode && (
+                 <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                        <FormItem className="md:col-span-2">
+                        <FormLabel>Contraseña</FormLabel>
+                        <FormControl>
+                            <Input type="password" placeholder="********" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
             )}
-            />
         </div>
         <div className="md:col-span-2">
             <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
-            Registrar
+                {isEditMode ? 'Guardar Cambios' : 'Registrar'}
             </Button>
         </div>
       </form>
