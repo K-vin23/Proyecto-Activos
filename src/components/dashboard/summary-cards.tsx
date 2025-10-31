@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Archive, ShieldAlert, ClipboardList } from "lucide-react"
+import { Archive, Users, ClipboardList } from "lucide-react"
 
 export default function SummaryCards() {
   return (
@@ -20,13 +20,13 @@ export default function SummaryCards() {
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Alertas</CardTitle>
-          <ShieldAlert className="h-4 w-4 text-accent" />
+          <CardTitle className="text-sm font-medium">Total de Usuarios</CardTitle>
+          <Users className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-accent">12</div>
+          <div className="text-2xl font-bold">35</div>
           <p className="text-xs text-muted-foreground">
-            3 requieren atención inmediata
+            +5 desde la semana pasada
           </p>
         </CardContent>
       </Card>
