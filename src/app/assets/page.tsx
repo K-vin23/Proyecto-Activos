@@ -952,7 +952,7 @@ export default function ActivosPage() {
                                 <TableCell>
                                 <Badge variant={asset.status === 'Asignado' ? 'default' : 'secondary'}>
                                     {asset.status}
-                                </TableCell>
+                                </Badge>
                                 </TableCell>
                                 <TableCell className="flex justify-end gap-2">
                                     <TooltipProvider>
@@ -1189,5 +1189,7 @@ export default function ActivosPage() {
     </DashboardLayout>
   );
 }
+
+    
 
     
