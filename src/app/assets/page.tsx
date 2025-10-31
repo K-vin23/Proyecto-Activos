@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -102,6 +102,8 @@ const simpleAssetSchema = z.object({
 
 type ComputerAssetSchema = z.infer<typeof computerAssetSchema>;
 type SimpleAssetSchema = z.infer<typeof simpleAssetSchema>;
+type AnyAssetSchema = ComputerAssetSchema | SimpleAssetSchema;
+
 
 const addHistorySchema = z.object({
     description: z.string().min(1, 'La descripción es requerida.'),
@@ -199,55 +201,65 @@ function AddHistoryForm({ assetId, onSaveSuccess }: { assetId: string, onSaveSuc
     );
 }
 
-function AssetForm({ assetType, onRegisterSuccess, onBack }: { assetType: 'Equipo de cómputo' | 'Monitor' | 'UPS', onRegisterSuccess?: () => void, onBack: () => void }) {
+function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetType: 'Equipo de cómputo' | 'Monitor' | 'UPS', onSaveSuccess?: () => void, onBack?: () => void, assetToEdit?: any | null }) {
   const { toast } = useToast();
-  
+  const isEditMode = !!assetToEdit;
+
   const isComputer = assetType === 'Equipo de cómputo';
   const schema = isComputer ? computerAssetSchema : simpleAssetSchema;
 
+  const defaultComputerValues = {
+      responsable: '', serialNumber: '', invoiceNumber: '', assetName: '',
+      networkName: '', brand: '', model: '', processor: '', ram: '',
+      storage: '', officeKey: '', osKey: '', equipmentType: 'portatil' as const,
+      os: 'Windows 11 Pro' as const, officeVersion: 'MICROSOFT OFFICE HOGAR Y EMPRESAS 2021' as const,
+  };
+
+  const defaultSimpleValues = {
+      responsable: '', assetName: '', serialNumber: '', invoiceNumber: '',
+      brand: '', model: '', description: '',
+  };
+
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
-    defaultValues: isComputer ? {
-      responsable: '',
-      serialNumber: '',
-      invoiceNumber: '',
-      assetName: '',
-      networkName: '',
-      brand: '',
-      model: '',
-      processor: '',
-      ram: '',
-      storage: '',
-      officeKey: '',
-      osKey: '',
-    } : {
-      responsable: '',
-      assetName: '',
-      serialNumber: '',
-      invoiceNumber: '',
-      brand: '',
-      model: '',
-      description: '',
-    },
+    defaultValues: isComputer ? defaultComputerValues : defaultSimpleValues,
   });
+
+  useEffect(() => {
+    if (isEditMode && assetToEdit) {
+      const valuesToSet: any = {
+        ...assetToEdit,
+        purchaseDate: new Date(assetToEdit.purchaseDate),
+      };
+      form.reset(valuesToSet);
+    }
+  }, [isEditMode, assetToEdit, form, isComputer]);
 
   function onSubmit(data: z.infer<typeof schema>) {
     try {
-      console.log('Asset data submitted:', { assetType, ...data });
-      toast({
-        title: 'Registro Exitoso',
-        description: `El ${assetType.toLowerCase()} ha sido registrado correctamente.`,
-      });
-      form.reset();
-      if (onRegisterSuccess) {
-        onRegisterSuccess();
+      if (isEditMode) {
+        console.log('Asset data updated:', { assetType, ...data });
+        toast({
+          title: 'Actualización Exitosa',
+          description: `El ${assetType.toLowerCase()} ha sido actualizado correctamente.`,
+        });
+      } else {
+        console.log('Asset data submitted:', { assetType, ...data });
+        toast({
+          title: 'Registro Exitoso',
+          description: `El ${assetType.toLowerCase()} ha sido registrado correctamente.`,
+        });
+        form.reset();
+      }
+      if (onSaveSuccess) {
+        onSaveSuccess();
       }
     } catch (error) {
-      console.error('Error during registration:', error);
+      console.error('Error during operation:', error);
       toast({
         variant: 'destructive',
-        title: 'Error de Registro',
-        description: `No se pudo registrar el ${assetType.toLowerCase()}. Inténtalo de nuevo.`,
+        title: 'Error',
+        description: `No se pudo ${isEditMode ? 'actualizar' : 'registrar'} el activo. Inténtalo de nuevo.`,
       });
     }
   }
@@ -265,10 +277,12 @@ function AssetForm({ assetType, onRegisterSuccess, onBack }: { assetType: 'Equip
 
   return (
     <>
-        <Button variant="ghost" onClick={onBack} className="absolute left-4 top-4">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Volver
-        </Button>
+        {onBack && (
+            <Button variant="ghost" onClick={onBack} className="absolute left-4 top-4">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Volver
+            </Button>
+        )}
         <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="px-6 pb-6">
             <div className="mb-6">
@@ -278,7 +292,7 @@ function AssetForm({ assetType, onRegisterSuccess, onBack }: { assetType: 'Equip
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel>Responsable</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value as string}>
+                        <Select onValueChange={field.onChange} defaultValue={field.value as string} disabled={isEditMode}>
                             <FormControl>
                             <SelectTrigger>
                                 <SelectValue placeholder="Selecciona un responsable" />
@@ -429,7 +443,7 @@ function AssetForm({ assetType, onRegisterSuccess, onBack }: { assetType: 'Equip
                 render={({ field }) => (
                     <FormItem>
                     <FormLabel>Tipo de Equipo</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value as string}>
+                    <Select onValueChange={field.onChange} value={field.value as string}>
                         <FormControl>
                         <SelectTrigger>
                             <SelectValue placeholder="Selecciona un tipo" />
@@ -495,7 +509,7 @@ function AssetForm({ assetType, onRegisterSuccess, onBack }: { assetType: 'Equip
                 render={({ field }) => (
                     <FormItem className="md:col-span-1">
                     <FormLabel>Versión de Office</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value as string}>
+                    <Select onValueChange={field.onChange} value={field.value as string}>
                         <FormControl>
                         <SelectTrigger>
                             <SelectValue placeholder="Selecciona una versión" />
@@ -534,7 +548,7 @@ function AssetForm({ assetType, onRegisterSuccess, onBack }: { assetType: 'Equip
                 render={({ field }) => (
                     <FormItem className="md:col-span-1">
                     <FormLabel>Sistema Operativo</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value as string}>
+                    <Select onValueChange={field.onChange} value={field.value as string}>
                         <FormControl>
                         <SelectTrigger>
                             <SelectValue placeholder="Selecciona un S.O." />
@@ -604,7 +618,7 @@ function AssetForm({ assetType, onRegisterSuccess, onBack }: { assetType: 'Equip
 
                 <div className={`${isComputer ? "md:col-span-3" : "md:col-span-2"} pt-4`}>
                 <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
-                    Registrar Activo
+                    {isEditMode ? 'Guardar Cambios' : 'Registrar Activo'}
                 </Button>
                 </div>
             </div>
@@ -653,10 +667,12 @@ interface AdvancedFilters {
 
 export default function ActivosPage() {
   const { toast } = useToast();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
   const [isChangeOwnerOpen, setIsChangeOwnerOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<any | null>(null);
+  const [assetToEdit, setAssetToEdit] = useState<any | null>(null);
   const [selectedAssetType, setSelectedAssetType] = useState<'Equipo de cómputo' | 'Monitor' | 'UPS' | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>({
@@ -666,11 +682,11 @@ export default function ActivosPage() {
     status: '',
   });
 
-  const handleDialogChange = (open: boolean) => {
+  const handleCreateDialogChange = (open: boolean) => {
     if (!open) {
         setSelectedAssetType(null);
     }
-    setIsDialogOpen(open);
+    setIsCreateDialogOpen(open);
   }
 
   const handleHistoryDialogChange = (open: boolean) => {
@@ -687,6 +703,13 @@ export default function ActivosPage() {
     setIsChangeOwnerOpen(open);
   }
   
+  const handleEditDialogChange = (open: boolean) => {
+      if (!open) {
+          setAssetToEdit(null);
+      }
+      setIsEditDialogOpen(open);
+  }
+
   const handleOpenHistoryDialog = (asset: any) => {
     setSelectedAsset(asset);
     setIsHistoryDialogOpen(true);
@@ -697,9 +720,16 @@ export default function ActivosPage() {
     setIsChangeOwnerOpen(true);
   }
 
-  const handleRegisterSuccess = () => {
-    setIsDialogOpen(false);
+  const handleOpenEditDialog = (asset: any) => {
+      setAssetToEdit(asset);
+      setIsEditDialogOpen(true);
+  }
+
+  const handleSaveSuccess = () => {
+    setIsCreateDialogOpen(false);
     setSelectedAssetType(null);
+    setIsEditDialogOpen(false);
+    setAssetToEdit(null);
   }
 
   const handleDeleteAsset = (assetId: string) => {
@@ -744,6 +774,20 @@ export default function ActivosPage() {
     );
   }, [searchTerm]);
 
+  const getAssetTypeForForm = (category: string): 'Equipo de cómputo' | 'Monitor' | 'UPS' | null => {
+      switch (category) {
+          case 'Equipo de cómputo':
+              return 'Equipo de cómputo';
+          case 'Monitor':
+              return 'Monitor';
+          case 'UPS':
+              return 'UPS';
+          default:
+              return null;
+      }
+  }
+
+
   return (
     <DashboardLayout>
       <div className="flex flex-col h-full min-w-[800px]">
@@ -751,7 +795,7 @@ export default function ActivosPage() {
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold font-headline tracking-tight">Activos</h1>
-            <Dialog open={isDialogOpen} onOpenChange={handleDialogChange}>
+            <Dialog open={isCreateDialogOpen} onOpenChange={handleCreateDialogChange}>
               <DialogTrigger asChild>
                 <Button>
                   <PlusCircle className="mr-2 h-4 w-4" />
@@ -760,7 +804,7 @@ export default function ActivosPage() {
               </DialogTrigger>
               <DialogContent className="w-[90vw] max-w-[90vw] md:w-full md:max-w-4xl rounded-lg max-h-[90vh] overflow-y-auto p-0">
                 {!selectedAssetType ? (
-                    <AssetTypeSelector onSelect={setSelectedAssetType} onCancel={() => handleDialogChange(false)} />
+                    <AssetTypeSelector onSelect={setSelectedAssetType} onCancel={() => handleCreateDialogChange(false)} />
                 ) : (
                     <>
                     <DialogHeader className="pt-12 px-6">
@@ -771,7 +815,7 @@ export default function ActivosPage() {
                     </DialogHeader>
                     <AssetForm 
                         assetType={selectedAssetType} 
-                        onRegisterSuccess={handleRegisterSuccess}
+                        onSaveSuccess={handleSaveSuccess}
                         onBack={() => setSelectedAssetType(null)} 
                     />
                     </>
@@ -939,18 +983,24 @@ export default function ActivosPage() {
                                                     <AssetHistory assetId={asset.id}/>
                                                 </div>
                                                 <DialogFooter className="border-t pt-4 flex-wrap justify-start gap-2">
-                                                    <Button variant="secondary" onClick={() => handleOpenHistoryDialog(asset)}>
-                                                        <ClipboardPlus className="mr-2 h-4 w-4" />
-                                                        Añadir Historial
-                                                    </Button>
-                                                    <Button variant="secondary" onClick={() => handleOpenChangeOwnerDialog(asset)}>
-                                                        <Replace className="mr-2 h-4 w-4" />
-                                                        Cambiar Responsable
-                                                    </Button>
-                                                    <Button variant="outline">
-                                                        <Pencil className="mr-2 h-4 w-4" />
-                                                        Editar
-                                                    </Button>
+                                                    <DialogClose asChild>
+                                                        <Button variant="secondary" onClick={() => handleOpenHistoryDialog(asset)}>
+                                                            <ClipboardPlus className="mr-2 h-4 w-4" />
+                                                            Añadir Historial
+                                                        </Button>
+                                                    </DialogClose>
+                                                     <DialogClose asChild>
+                                                        <Button variant="secondary" onClick={() => handleOpenChangeOwnerDialog(asset)}>
+                                                            <Replace className="mr-2 h-4 w-4" />
+                                                            Cambiar Responsable
+                                                        </Button>
+                                                    </DialogClose>
+                                                    <DialogClose asChild>
+                                                        <Button variant="outline" onClick={() => handleOpenEditDialog(asset)}>
+                                                            <Pencil className="mr-2 h-4 w-4" />
+                                                            Editar
+                                                        </Button>
+                                                    </DialogClose>
                                                 </DialogFooter>
                                             </DialogContent>
                                         </Dialog>
@@ -1098,8 +1148,35 @@ export default function ActivosPage() {
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+
+        {/* Edit Asset Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={handleEditDialogChange}>
+            <DialogContent className="w-[90vw] max-w-[90vw] md:w-full md:max-w-4xl rounded-lg max-h-[90vh] overflow-y-auto p-0">
+                {assetToEdit && getAssetTypeForForm(assetToEdit.category) && (
+                     <>
+                        <DialogHeader className="pt-12 px-6">
+                            <DialogTitle className="text-2xl font-headline text-center">Editar Activo: {assetToEdit.name}</DialogTitle>
+                            <DialogDescription className="text-center">
+                                Modifica los datos del activo. El responsable no se puede cambiar aquí.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <AssetForm 
+                            assetType={getAssetTypeForForm(assetToEdit.category)!} 
+                            onSaveSuccess={handleSaveSuccess}
+                            assetToEdit={assetToEdit}
+                        />
+                    </>
+                )}
+                <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">Close</span>
+                </DialogClose>
+            </DialogContent>
+        </Dialog>
     </DashboardLayout>
   );
 }
+
+    
 
     
