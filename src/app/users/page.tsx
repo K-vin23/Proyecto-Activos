@@ -13,7 +13,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { PlusCircle, X, Pencil, Trash2, Search } from 'lucide-react';
+import { PlusCircle, X, Pencil, Trash2, Search, Filter } from 'lucide-react';
 import RegisterForm from '@/components/auth/register-form';
 import DashboardLayout from '@/components/dashboard-layout';
 import Header from '@/components/dashboard/header';
@@ -31,6 +31,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 // Mock data for users
 const initialUsers = [
@@ -103,6 +105,11 @@ const getInitials = (name: string) => {
     return name.substring(0, 2).toUpperCase();
 }
 
+interface AdvancedFilters {
+    company: string;
+    role: string;
+    status: string;
+}
 
 export default function UsersPage() {
   const [users, setUsers] = useState(initialUsers);
@@ -110,6 +117,11 @@ export default function UsersPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [userToEdit, setUserToEdit] = useState<any | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>({
+    company: '',
+    role: '',
+    status: '',
+  });
   const { toast } = useToast();
 
   const handleEditClick = (user: any) => {
@@ -133,15 +145,27 @@ export default function UsersPage() {
     // Here you would refetch the data from your backend
   };
 
-  const filteredUsers = useMemo(() => {
-    if (!searchTerm) return users;
+  const handleAdvancedFilterChange = (filterName: keyof AdvancedFilters, value: string) => {
+    setAdvancedFilters(prev => ({ ...prev, [filterName]: value }));
+  };
 
-    return users.filter(user =>
-      Object.values(user).some(value =>
-        String(value).toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    );
-  }, [searchTerm, users]);
+  const clearAdvancedFilters = () => {
+    setAdvancedFilters({ company: '', role: '', status: '' });
+  };
+
+  const filteredUsers = useMemo(() => {
+    return users.filter(user => {
+        const matchesCompany = advancedFilters.company ? user.company === advancedFilters.company : true;
+        const matchesRole = advancedFilters.role ? user.role === advancedFilters.role : true;
+        const matchesStatus = advancedFilters.status ? user.status === advancedFilters.status : true;
+
+        const matchesSearchTerm = searchTerm ? Object.values(user).some(value =>
+            String(value).toLowerCase().includes(searchTerm.toLowerCase())
+        ) : true;
+
+        return matchesCompany && matchesRole && matchesStatus && matchesSearchTerm;
+    });
+  }, [searchTerm, users, advancedFilters]);
 
   return (
     <DashboardLayout>
@@ -174,16 +198,54 @@ export default function UsersPage() {
           </div>
           <Card>
             <CardHeader>
-              <CardTitle>Listado de Usuarios</CardTitle>
-                <div className="relative mt-2">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                    type="search"
-                    placeholder="Buscar usuario por nombre, email, empresa..."
-                    className="w-full appearance-none bg-background pl-8 shadow-none md:w-1/3"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                <CardTitle>Listado de Usuarios</CardTitle>
+                 <div className="space-y-4 pt-2">
+                    <div className="relative">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                        type="search"
+                        placeholder="Buscar usuario por nombre, email, empresa..."
+                        className="w-full appearance-none bg-background pl-8 shadow-none md:w-1/3"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                     <Accordion type="single" collapsible className="w-full">
+                        <AccordionItem value="advanced-search">
+                            <AccordionTrigger>
+                                <div className="flex items-center gap-2">
+                                    <Filter className="h-4 w-4" />
+                                    Búsqueda Avanzada
+                                </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="pt-4">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <Select value={advancedFilters.company} onValueChange={(value) => handleAdvancedFilterChange('company', value)}>
+                                        <SelectTrigger><SelectValue placeholder="Empresa" /></SelectTrigger>
+                                        <SelectContent>
+                                            {companies.map(comp => <SelectItem key={comp.id} value={comp.name}>{comp.name}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                     <Select value={advancedFilters.role} onValueChange={(value) => handleAdvancedFilterChange('role', value)}>
+                                        <SelectTrigger><SelectValue placeholder="Rol" /></SelectTrigger>
+                                        <SelectContent>
+                                             <SelectItem value="Admin">Admin</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <Select value={advancedFilters.status} onValueChange={(value) => handleAdvancedFilterChange('status', value)}>
+                                        <SelectTrigger><SelectValue placeholder="Estado" /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Active">Activo</SelectItem>
+                                            <SelectItem value="Inactive">Inactivo</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="pt-4 flex justify-end">
+                                    <Button variant="ghost" onClick={clearAdvancedFilters}>Limpiar filtros</Button>
+                                </div>
+                            </AccordionContent>
+                        </AccordionItem>
+                    </Accordion>
                 </div>
             </CardHeader>
             <CardContent>

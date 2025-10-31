@@ -13,7 +13,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { PlusCircle, X, Pencil, Trash2, Search } from 'lucide-react';
+import { PlusCircle, X, Pencil, Trash2, Search, Filter } from 'lucide-react';
 import DashboardLayout from '@/components/dashboard-layout';
 import Header from '@/components/dashboard/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -41,6 +41,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 
 // Mock data for companies
@@ -168,12 +170,21 @@ function CompanyForm({ onSaveSuccess, companyToEdit }: { onSaveSuccess?: () => v
   );
 }
 
+interface AdvancedFilters {
+    city: string;
+    status: string;
+}
+
 export default function EmpresasPage() {
   const [companies, setCompanies] = useState(initialCompanies);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [companyToEdit, setCompanyToEdit] = useState<any | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>({
+    city: '',
+    status: '',
+  });
 
   const { toast } = useToast();
 
@@ -198,15 +209,28 @@ export default function EmpresasPage() {
     // Here you would refetch the data from your backend
   };
 
-  const filteredCompanies = useMemo(() => {
-    if (!searchTerm) return companies;
+  const handleAdvancedFilterChange = (filterName: keyof AdvancedFilters, value: string) => {
+    setAdvancedFilters(prev => ({ ...prev, [filterName]: value }));
+  };
 
-    return companies.filter(company =>
-      Object.values(company).some(value =>
-        String(value).toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    );
-  }, [searchTerm, companies]);
+  const clearAdvancedFilters = () => {
+    setAdvancedFilters({ city: '', status: '' });
+  };
+
+  const filteredCompanies = useMemo(() => {
+    return companies.filter(company => {
+        // Advanced filters
+        const matchesCity = advancedFilters.city ? company.city === advancedFilters.city : true;
+        const matchesStatus = advancedFilters.status ? company.status === advancedFilters.status : true;
+
+        // Simple search term filter
+        const matchesSearchTerm = searchTerm ? Object.values(company).some(value =>
+            String(value).toLowerCase().includes(searchTerm.toLowerCase())
+        ) : true;
+
+        return matchesCity && matchesStatus && matchesSearchTerm;
+    });
+  }, [searchTerm, companies, advancedFilters]);
 
   return (
     <DashboardLayout>
@@ -238,17 +262,49 @@ export default function EmpresasPage() {
             </Dialog>
           </div>
           <Card>
-            <CardHeader>
+             <CardHeader>
                 <CardTitle>Listado de Empresas</CardTitle>
-                <div className="relative mt-2">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                    type="search"
-                    placeholder="Buscar empresa por nombre, ID, ciudad..."
-                    className="w-full appearance-none bg-background pl-8 shadow-none md:w-1/3"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                <div className="space-y-4 pt-2">
+                    <div className="relative">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                        type="search"
+                        placeholder="Buscar empresa por nombre, ID, ciudad..."
+                        className="w-full appearance-none bg-background pl-8 shadow-none md:w-1/3"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                     <Accordion type="single" collapsible className="w-full">
+                        <AccordionItem value="advanced-search">
+                            <AccordionTrigger>
+                                <div className="flex items-center gap-2">
+                                    <Filter className="h-4 w-4" />
+                                    Búsqueda Avanzada
+                                </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="pt-4">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <Select value={advancedFilters.city} onValueChange={(value) => handleAdvancedFilterChange('city', value)}>
+                                        <SelectTrigger><SelectValue placeholder="Ciudad" /></SelectTrigger>
+                                        <SelectContent>
+                                            {[...new Set(companies.map(c => c.city))].map(city => <SelectItem key={city} value={city}>{city}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                    <Select value={advancedFilters.status} onValueChange={(value) => handleAdvancedFilterChange('status', value)}>
+                                        <SelectTrigger><SelectValue placeholder="Estado" /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Active">Activo</SelectItem>
+                                            <SelectItem value="Inactive">Inactivo</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="pt-4 flex justify-end">
+                                    <Button variant="ghost" onClick={clearAdvancedFilters}>Limpiar filtros</Button>
+                                </div>
+                            </AccordionContent>
+                        </AccordionItem>
+                    </Accordion>
                 </div>
             </CardHeader>
             <CardContent>
@@ -356,4 +412,5 @@ export default function EmpresasPage() {
     </DashboardLayout>
   );
 }
+    
     

@@ -14,7 +14,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { PlusCircle, X, Calendar as CalendarIcon, Trash2, ArrowLeft, Monitor, Zap, Laptop, ClipboardPlus, Eye, Replace, Download, Search } from 'lucide-react';
+import { PlusCircle, X, Calendar as CalendarIcon, Trash2, ArrowLeft, Monitor, Zap, Laptop, ClipboardPlus, Eye, Replace, Download, Search, Filter } from 'lucide-react';
 import DashboardLayout from '@/components/dashboard-layout';
 import Header from '@/components/dashboard/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -57,6 +57,7 @@ import { Separator } from '@/components/ui/separator';
 import AssetHistory from '@/components/dashboard/asset-history';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 // Mock data for assets
 const assets = [
@@ -123,13 +124,22 @@ const deletedAssets = [
     },
 ];
 
-// Mock data for users - In a real app, this would come from an API
 const users = [
     { id: '1', name: 'John Doe' },
     { id: '2', name: 'Jane Smith' },
     { id: '3', name: 'Robert Brown' },
     { id: '4', name: 'Almacén' },
+    { id: '5', name: 'Washington Palma' },
+    { id: '6', name: 'Johana Fuentes'},
+    { id: '7', name: 'Claudia Moreno'},
+    { id: '8', name: 'Wilson Rojas'},
   ];
+
+const companies = [
+    { id: 1, name: 'PALLOMARO S.A' },
+    { id: 2, name: 'HYCO' },
+    { id: 3, name: 'FUNDIMETAL' },
+];
 
 const computerAssetSchema = z.object({
   responsable: z.string().min(1, 'El responsable es requerido.'),
@@ -714,6 +724,13 @@ function AssetTypeSelector({ onSelect, onCancel }: { onSelect: (type: 'Equipo de
     );
 }
 
+interface AdvancedFilters {
+    responsable: string;
+    company: string;
+    category: string;
+    status: string;
+}
+
 export default function ActivosPage() {
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -722,6 +739,12 @@ export default function ActivosPage() {
   const [selectedAsset, setSelectedAsset] = useState<any | null>(null);
   const [selectedAssetType, setSelectedAssetType] = useState<'Equipo de cómputo' | 'Monitor' | 'UPS' | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>({
+    responsable: '',
+    company: '',
+    category: '',
+    status: '',
+  });
 
   const handleDialogChange = (open: boolean) => {
     if (!open) {
@@ -766,15 +789,31 @@ export default function ActivosPage() {
         description: `El activo ${assetId} ha sido movido a la papelera.`
     });
   }
+  
+  const handleAdvancedFilterChange = (filterName: keyof AdvancedFilters, value: string) => {
+    setAdvancedFilters(prev => ({...prev, [filterName]: value}));
+  }
+
+  const clearAdvancedFilters = () => {
+    setAdvancedFilters({ responsable: '', company: '', category: '', status: '' });
+  };
 
   const filteredAssets = useMemo(() => {
-    if (!searchTerm) return assets;
-    return assets.filter(asset =>
-      Object.values(asset).some(value =>
+    return assets.filter(asset => {
+      // Advanced filters
+      const matchesResponsable = advancedFilters.responsable ? asset.responsable === advancedFilters.responsable : true;
+      const matchesCompany = advancedFilters.company ? asset.company === advancedFilters.company : true;
+      const matchesCategory = advancedFilters.category ? asset.category === advancedFilters.category : true;
+      const matchesStatus = advancedFilters.status ? asset.status === advancedFilters.status : true;
+
+      // Simple search term filter
+      const matchesSearchTerm = searchTerm ? Object.values(asset).some(value =>
         String(value).toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    );
-  }, [searchTerm]);
+      ) : true;
+      
+      return matchesResponsable && matchesCompany && matchesCategory && matchesStatus && matchesSearchTerm;
+    });
+  }, [searchTerm, advancedFilters]);
 
   const filteredDeletedAssets = useMemo(() => {
     if (!searchTerm) return deletedAssets;
@@ -832,17 +871,63 @@ export default function ActivosPage() {
             <TabsContent value="all">
                 <Card>
                     <CardHeader>
-                    <CardTitle>Listado de Activos</CardTitle>
-                    <div className="relative mt-2">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                        type="search"
-                        placeholder="Buscar activo por ID, nombre, categoría..."
-                        className="w-full appearance-none bg-background pl-8 shadow-none md:w-1/3"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
+                        <CardTitle>Listado de Activos</CardTitle>
+                        <div className="space-y-4 pt-2">
+                            <div className="relative">
+                                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                type="search"
+                                placeholder="Buscar activo por ID, nombre, categoría..."
+                                className="w-full appearance-none bg-background pl-8 shadow-none md:w-1/3"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                            <Accordion type="single" collapsible className="w-full">
+                                <AccordionItem value="advanced-search">
+                                    <AccordionTrigger>
+                                        <div className="flex items-center gap-2">
+                                            <Filter className="h-4 w-4" />
+                                            Búsqueda Avanzada
+                                        </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent className="pt-4">
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                            <Select value={advancedFilters.responsable} onValueChange={(value) => handleAdvancedFilterChange('responsable', value)}>
+                                                <SelectTrigger><SelectValue placeholder="Responsable" /></SelectTrigger>
+                                                <SelectContent>
+                                                    {users.map(user => <SelectItem key={user.id} value={user.name}>{user.name}</SelectItem>)}
+                                                </SelectContent>
+                                            </Select>
+                                            <Select value={advancedFilters.company} onValueChange={(value) => handleAdvancedFilterChange('company', value)}>
+                                                <SelectTrigger><SelectValue placeholder="Empresa" /></SelectTrigger>
+                                                <SelectContent>
+                                                    {companies.map(comp => <SelectItem key={comp.id} value={comp.name}>{comp.name}</SelectItem>)}
+                                                </SelectContent>
+                                            </Select>
+                                            <Select value={advancedFilters.category} onValueChange={(value) => handleAdvancedFilterChange('category', value)}>
+                                                <SelectTrigger><SelectValue placeholder="Categoría" /></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="Equipo de cómputo">Equipo de cómputo</SelectItem>
+                                                    <SelectItem value="Monitor">Monitor</SelectItem>
+                                                    <SelectItem value="UPS">UPS</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <Select value={advancedFilters.status} onValueChange={(value) => handleAdvancedFilterChange('status', value)}>
+                                                <SelectTrigger><SelectValue placeholder="Estado" /></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="Asignado">Asignado</SelectItem>
+                                                    <SelectItem value="En Almacén">En Almacén</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="pt-4 flex justify-end">
+                                            <Button variant="ghost" onClick={clearAdvancedFilters}>Limpiar filtros</Button>
+                                        </div>
+                                    </AccordionContent>
+                                </AccordionItem>
+                            </Accordion>
+                        </div>
                     </CardHeader>
                     <CardContent>
                     <div className="overflow-x-auto">
@@ -867,7 +952,7 @@ export default function ActivosPage() {
                                 <TableCell>
                                 <Badge variant={asset.status === 'Asignado' ? 'default' : 'secondary'}>
                                     {asset.status}
-                                </Badge>
+                                </TableCell>
                                 </TableCell>
                                 <TableCell className="flex justify-end gap-2">
                                     <TooltipProvider>
@@ -1104,3 +1189,5 @@ export default function ActivosPage() {
     </DashboardLayout>
   );
 }
+
+    
