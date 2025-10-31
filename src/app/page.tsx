@@ -3,7 +3,7 @@ import DashboardLayout from '@/components/dashboard-layout';
 import Header from '@/components/dashboard/header';
 import SummaryCards from '@/components/dashboard/summary-cards';
 import AssetsChart from '@/components/dashboard/assets-chart';
-import RecentNotifications from '@/components/dashboard/recent-notifications';
+import UpcomingMaintenance from '@/components/dashboard/upcoming-maintenance';
 
 export default function Home() {
   return (
@@ -19,7 +19,7 @@ export default function Home() {
                 <AssetsChart />
               </div>
               <div className="flex flex-col gap-4 md:gap-8">
-                 <RecentNotifications />
+                 <UpcomingMaintenance />
               </div>
             </div>
           </div>

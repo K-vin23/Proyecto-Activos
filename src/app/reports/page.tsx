@@ -31,19 +31,7 @@ import DashboardLayout from '@/components/dashboard-layout';
 import Header from '@/components/dashboard/header';
 import { Separator } from '@/components/ui/separator';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-
-const users = [
-    { id: '1', name: 'John Doe' },
-    { id: '2', name: 'Jane Smith' },
-    { id: '3', name: 'Robert Brown' },
-    { id: '4', name: 'Almacén' },
-];
-
-const companies = [
-    { id: 1, name: 'PALLOMARO S.A' },
-    { id: 2, name: 'HYCO' },
-    { id: 3, name: 'FUNDIMETAL' },
-  ];
+import { users, companies } from '@/lib/mock-data';
 
 const reportFiltersSchema = z.object({
   assetName: z.string().optional(),
@@ -408,5 +396,3 @@ export default function ReportsPage() {
     </DashboardLayout>
   );
 }
-
-    

@@ -58,88 +58,8 @@ import AssetHistory from '@/components/dashboard/asset-history';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { assets, deletedAssets, users, companies } from '@/lib/mock-data';
 
-// Mock data for assets
-const assets = [
-  {
-    id: 'LAP-001',
-    name: 'Laptop Dell Latitude 5420',
-    category: 'Equipo de cómputo',
-    status: 'Asignado',
-    company: 'PALLOMARO S.A',
-    responsable: 'John Doe',
-    city: 'Cali',
-    serialNumber: 'DXG-12345-ABC',
-    purchaseDate: '2023-01-15',
-    invoiceNumber: 'FV-2023-1234',
-    brand: 'Dell',
-    model: 'Latitude 5420',
-    processor: 'Intel Core i7-11800H',
-    ram: '16 GB DDR4',
-    storage: '1 TB SSD NVMe',
-    os: 'Windows 11 Pro',
-    osKey: 'XXXXX-XXXXX-XXXXX-XXXXX-ABCDE',
-    officeVersion: 'MICROSOFT OFFICE HOGAR Y EMPRESAS 2021',
-    officeKey: 'YYYYY-YYYYY-YYYYY-YYYYY-FGHIJ',
-  },
-  {
-    id: 'MON-002',
-    name: 'Monitor LG UltraWide 29"',
-    category: 'Monitor',
-    status: 'En Almacén',
-    company: 'HYCO',
-    responsable: 'Almacén',
-    city: 'Cali',
-    serialNumber: 'LGM-98765-XYZ',
-    purchaseDate: '2022-11-30',
-    invoiceNumber: 'FV-2022-5678',
-    brand: 'LG',
-    model: '29WL500-B',
-    description: 'Monitor con resolución 2560x1080.',
-  },
-  {
-    id: 'UPS-001',
-    name: 'UPS APC 1500VA',
-    category: 'UPS',
-    status: 'Asignado',
-    company: 'FUNDIMETAL',
-    responsable: 'Jane Smith',
-    city: 'Cali',
-    serialNumber: 'APC-91011-JKL',
-    purchaseDate: '2024-03-01',
-    invoiceNumber: 'FV-2024-9101',
-    brand: 'APC',
-    model: 'Smart-UPS 1500',
-    description: 'Batería reemplazada en Enero 2024.',
-  },
-];
-
-const deletedAssets = [
-    {
-      id: 'LAP-000',
-      name: 'Laptop HP Probook',
-      category: 'Computadores',
-      deletionDate: '2023-10-29',
-      reason: 'Dañado sin reparación',
-    },
-];
-
-const users = [
-    { id: '1', name: 'John Doe' },
-    { id: '2', name: 'Jane Smith' },
-    { id: '3', name: 'Robert Brown' },
-    { id: '4', name: 'Almacén' },
-    { id: '5', name: 'Washington Palma' },
-    { id: '6', name: 'Johana Fuentes'},
-    { id: '7', name: 'Claudia Moreno'},
-    { id: '8', name: 'Wilson Rojas'},
-  ];
-
-const companies = [
-    { id: 1, name: 'PALLOMARO S.A' },
-    { id: 2, name: 'HYCO' },
-    { id: 3, name: 'FUNDIMETAL' },
-];
 
 const computerAssetSchema = z.object({
   responsable: z.string().min(1, 'El responsable es requerido.'),
@@ -1189,7 +1109,3 @@ export default function ActivosPage() {
     </DashboardLayout>
   );
 }
-
-    
-
-    

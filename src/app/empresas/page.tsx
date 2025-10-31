@@ -43,32 +43,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { companies as initialCompanies } from '@/lib/mock-data';
 
-
-// Mock data for companies
-const initialCompanies = [
-  {
-    id: 1,
-    companyId: 'PALLOMARO',
-    name: 'PALLOMARO S.A',
-    city: 'Cali',
-    status: 'Active',
-  },
-  {
-    id: 2,
-    companyId: 'HYCO',
-    name: 'HYCO',
-    city: 'Cali',
-    status: 'Active',
-  },
-  {
-    id: 3,
-    companyId: 'FUNDIMETAL',
-    name: 'FUNDIMETAL',
-    city: 'Cali',
-    status: 'Active',
-  },
-];
 
 const companySchema = z.object({
   companyId: z.string().min(1, 'El ID de la empresa es requerido.'),
@@ -176,7 +152,7 @@ interface AdvancedFilters {
 }
 
 export default function EmpresasPage() {
-  const [companies, setCompanies] = useState(initialCompanies);
+  const [companies, setCompanies] = useState(initialCompanies.map(c => ({...c, status: 'Active'})));
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [companyToEdit, setCompanyToEdit] = useState<any | null>(null);
@@ -332,7 +308,7 @@ export default function EmpresasPage() {
                              </div>
                           </div>
                         </TableCell>
-                        <TableCell>{company.companyId}</TableCell>
+                        <TableCell>{(company as any).companyId}</TableCell>
                         <TableCell>{company.city}</TableCell>
                         <TableCell>
                           <Badge variant={company.status === 'Active' ? 'default' : 'destructive'}>
@@ -412,5 +388,3 @@ export default function EmpresasPage() {
     </DashboardLayout>
   );
 }
-    
-    
