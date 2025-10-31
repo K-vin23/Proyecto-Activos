@@ -17,6 +17,7 @@ import {
   ChartTooltipContent,
   ChartConfig,
 } from "@/components/ui/chart"
+import { users } from "@/lib/mock-data";
 
 const chartConfig = {
   assets: {
@@ -34,20 +35,20 @@ export default function AssetsChart({ assets }: AssetsChartProps) {
   const chartData = useMemo(() => {
     const departmentData: { [key: string]: number } = {};
 
-    const assetDepartments = assets.map(asset => {
-        // Find user for asset to get department
-        // This is mock logic, in a real app you might have department on the asset or a better join
-        return 'TI'; // Mock, needs real logic
+    assets.forEach(asset => {
+      const user = users.find(u => u.name === asset.responsable);
+      // Fallback to 'Sin Asignar' if user not found or department not specified
+      const department = user?.department || 'Sin Asignar';
+      if (departmentData[department]) {
+        departmentData[department]++;
+      } else {
+        departmentData[department] = 1;
+      }
     });
 
-    // This is mock logic and should be replaced with something real
-    const departments = ["TI", "Marketing", "Ventas", "RRHH", "Operaciones", "Finanzas"];
-    const assetsPerDepartment = Math.floor(assets.length / departments.length);
-    const remainder = assets.length % departments.length;
-    
-    return departments.map((dep, index) => ({
-      department: dep,
-      assets: assetsPerDepartment + (index < remainder ? 1 : 0)
+    return Object.keys(departmentData).map(department => ({
+      department,
+      assets: departmentData[department]
     }));
 
   }, [assets]);
@@ -69,7 +70,7 @@ export default function AssetsChart({ assets }: AssetsChartProps) {
               axisLine={false}
               fontSize={12}
             />
-            <YAxis />
+            <YAxis allowDecimals={false} />
             <ChartTooltip
               cursor={false}
               content={<ChartTooltipContent hideLabel />}
