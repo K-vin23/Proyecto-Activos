@@ -16,37 +16,20 @@ import { assets, assetHistory } from '@/lib/mock-data';
 import { AlertCircle } from 'lucide-react';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
-const MAINTENANCE_INTERVAL_MONTHS = 6;
+interface MaintenanceTask {
+  id: string;
+  name: string;
+  nextMaintenanceDate: Date;
+  daysUntilMaintenance: number;
+  isOverdue: boolean;
+}
 
-export default function UpcomingMaintenance() {
-  const upcomingMaintenanceList = useMemo(() => {
-    const maintenanceTasks = assets
-      .filter(asset => asset.category === 'Equipo de cómputo' || asset.category === 'UPS')
-      .map(asset => {
-        const history = (assetHistory as Record<string, any[]>)[asset.id] || [];
-        const lastMaintenance = history
-          .filter(entry => entry.type === 'Mantenimiento')
-          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+interface UpcomingMaintenanceProps {
+    maintenanceList: MaintenanceTask[];
+}
 
-        // If no maintenance history, use purchase date as baseline
-        const lastMaintenanceDate = lastMaintenance ? new Date(lastMaintenance.date) : new Date(asset.purchaseDate);
-        const nextMaintenanceDate = addMonths(lastMaintenanceDate, MAINTENANCE_INTERVAL_MONTHS);
-        const daysUntilMaintenance = differenceInDays(nextMaintenanceDate, new Date());
-
-        return {
-          ...asset,
-          nextMaintenanceDate,
-          daysUntilMaintenance,
-          isOverdue: daysUntilMaintenance < 0,
-        };
-      })
-      // Only show items due in the next 6 months or that are overdue
-      .filter(asset => asset.daysUntilMaintenance <= (30 * MAINTENANCE_INTERVAL_MONTHS))
-      .sort((a, b) => a.daysUntilMaintenance - b.daysUntilMaintenance);
-      
-    return maintenanceTasks;
-  }, []);
-
+export default function UpcomingMaintenance({ maintenanceList }: UpcomingMaintenanceProps) {
+  
   const getStatusBadge = (days: number) => {
     if (days < 0) return <Badge variant="destructive">Vencido</Badge>;
     if (days <= 30) return <Badge variant="secondary" className="bg-yellow-500 text-black">Próximo</Badge>;
@@ -61,8 +44,8 @@ export default function UpcomingMaintenance() {
       </CardHeader>
       <CardContent className="grid gap-4">
         <TooltipProvider>
-            {upcomingMaintenanceList.length > 0 ? (
-                upcomingMaintenanceList.map((asset) => (
+            {maintenanceList.length > 0 ? (
+                maintenanceList.map((asset) => (
                 <div className="flex items-center gap-4" key={asset.id}>
                     {asset.isOverdue && (
                         <Tooltip>

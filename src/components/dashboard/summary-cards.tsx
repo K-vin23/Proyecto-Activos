@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Archive, Users, ClipboardList } from "lucide-react"
 
-export default function SummaryCards() {
+export default function SummaryCards({ openTasks }: { openTasks: number }) {
   return (
     <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
       <Card>
@@ -38,9 +38,9 @@ export default function SummaryCards() {
           <ClipboardList className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">38</div>
+          <div className="text-2xl font-bold">{openTasks}</div>
           <p className="text-xs text-muted-foreground">
-            +19% desde la semana pasada
+            Mantenimientos pendientes
           </p>
         </CardContent>
       </Card>
