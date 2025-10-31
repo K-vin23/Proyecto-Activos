@@ -221,19 +221,25 @@ export default function UsersPage() {
                             <AccordionContent className="pt-4">
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                     <Select value={advancedFilters.company} onValueChange={(value) => handleAdvancedFilterChange('company', value)}>
-                                        <SelectTrigger><SelectValue placeholder="Empresa" /></SelectTrigger>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Empresa" />
+                                        </SelectTrigger>
                                         <SelectContent>
                                             {companies.map(comp => <SelectItem key={comp.id} value={comp.name}>{comp.name}</SelectItem>)}
                                         </SelectContent>
                                     </Select>
                                      <Select value={advancedFilters.role} onValueChange={(value) => handleAdvancedFilterChange('role', value)}>
-                                        <SelectTrigger><SelectValue placeholder="Rol" /></SelectTrigger>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Rol" />
+                                        </SelectTrigger>
                                         <SelectContent>
                                              <SelectItem value="Admin">Admin</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     <Select value={advancedFilters.status} onValueChange={(value) => handleAdvancedFilterChange('status', value)}>
-                                        <SelectTrigger><SelectValue placeholder="Estado" /></SelectTrigger>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Estado" />
+                                        </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="Active">Activo</SelectItem>
                                             <SelectItem value="Inactive">Inactivo</SelectItem>
@@ -353,5 +359,3 @@ export default function UsersPage() {
     </DashboardLayout>
   );
 }
-
-    
