@@ -18,7 +18,6 @@ import {
   LayoutDashboard,
   Users,
   Archive,
-  FileText,
   LifeBuoy,
   LogOut,
   Box,
@@ -77,22 +76,6 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
                   <Link href="/assets">
                     <Archive />
                     <span>Activos</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive('/reports')} tooltip="Reportes">
-                  <Link href="/reports">
-                    <FileText />
-                    <span>Reportes</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive('/support')} tooltip="Soporte">
-                  <Link href="#">
-                    <LifeBuoy />
-                    <span>Soporte</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
