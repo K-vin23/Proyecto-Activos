@@ -277,7 +277,7 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
 
   return (
     <>
-        {(onBack && isEditMode) && (
+        {onBack && (
             <Button variant="ghost" onClick={onBack} className="absolute left-4 top-4">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Volver
@@ -983,24 +983,18 @@ export default function ActivosPage() {
                                                     <AssetHistory assetId={asset.id}/>
                                                 </div>
                                                 <DialogFooter className="border-t pt-4 flex-wrap justify-start gap-2">
-                                                    <DialogClose asChild>
-                                                        <Button variant="secondary" onClick={() => handleOpenHistoryDialog(asset)}>
-                                                            <ClipboardPlus className="mr-2 h-4 w-4" />
-                                                            Añadir Historial
-                                                        </Button>
-                                                    </DialogClose>
-                                                     <DialogClose asChild>
-                                                        <Button variant="secondary" onClick={() => handleOpenChangeOwnerDialog(asset)}>
-                                                            <Replace className="mr-2 h-4 w-4" />
-                                                            Cambiar Responsable
-                                                        </Button>
-                                                    </DialogClose>
-                                                    <DialogClose asChild>
-                                                        <Button variant="outline" onClick={() => handleOpenEditDialog(asset)}>
-                                                            <Pencil className="mr-2 h-4 w-4" />
-                                                            Editar
-                                                        </Button>
-                                                    </DialogClose>
+                                                    <Button variant="secondary" onClick={() => handleOpenHistoryDialog(asset)}>
+                                                        <ClipboardPlus className="mr-2 h-4 w-4" />
+                                                        Añadir Historial
+                                                    </Button>
+                                                     <Button variant="secondary" onClick={() => handleOpenChangeOwnerDialog(asset)}>
+                                                        <Replace className="mr-2 h-4 w-4" />
+                                                        Cambiar Responsable
+                                                    </Button>
+                                                    <Button variant="outline" onClick={() => handleOpenEditDialog(asset)}>
+                                                        <Pencil className="mr-2 h-4 w-4" />
+                                                        Editar
+                                                    </Button>
                                                 </DialogFooter>
                                             </DialogContent>
                                         </Dialog>
