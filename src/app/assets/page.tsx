@@ -14,7 +14,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { PlusCircle, X, Calendar as CalendarIcon, Trash2, ArrowLeft, Monitor, Zap, Laptop, ClipboardPlus, Eye, Replace, Download, Search, Filter } from 'lucide-react';
+import { PlusCircle, X, Calendar as CalendarIcon, Trash2, ArrowLeft, Monitor, Zap, Laptop, ClipboardPlus, Eye, Replace, Download, Search, Filter, Pencil } from 'lucide-react';
 import DashboardLayout from '@/components/dashboard-layout';
 import Header from '@/components/dashboard/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -938,30 +938,22 @@ export default function ActivosPage() {
                                                     </Card>
                                                     <AssetHistory assetId={asset.id}/>
                                                 </div>
+                                                <DialogFooter className="border-t pt-4 flex-wrap justify-start gap-2">
+                                                    <Button variant="secondary" onClick={() => handleOpenHistoryDialog(asset)}>
+                                                        <ClipboardPlus className="mr-2 h-4 w-4" />
+                                                        Añadir Historial
+                                                    </Button>
+                                                    <Button variant="secondary" onClick={() => handleOpenChangeOwnerDialog(asset)}>
+                                                        <Replace className="mr-2 h-4 w-4" />
+                                                        Cambiar Responsable
+                                                    </Button>
+                                                    <Button variant="outline">
+                                                        <Pencil className="mr-2 h-4 w-4" />
+                                                        Editar
+                                                    </Button>
+                                                </DialogFooter>
                                             </DialogContent>
                                         </Dialog>
-
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Button variant="secondary" size="icon" onClick={() => handleOpenHistoryDialog(asset)}>
-                                                    <ClipboardPlus className="h-4 w-4" />
-                                                </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                <p>Añadir Historial</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Button variant="secondary" size="icon" onClick={() => handleOpenChangeOwnerDialog(asset)}>
-                                                    <Replace className="h-4 w-4" />
-                                                </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                <p>Cambiar Responsable</p>
-                                            </TooltipContent>
-                                        </Tooltip>
 
                                         <AlertDialog>
                                             <Tooltip>
@@ -1109,3 +1101,5 @@ export default function ActivosPage() {
     </DashboardLayout>
   );
 }
+
+    
