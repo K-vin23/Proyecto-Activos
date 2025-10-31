@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -13,7 +13,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { PlusCircle, X, Pencil, Trash2 } from 'lucide-react';
+import { PlusCircle, X, Pencil, Trash2, Search } from 'lucide-react';
 import RegisterForm from '@/components/auth/register-form';
 import DashboardLayout from '@/components/dashboard-layout';
 import Header from '@/components/dashboard/header';
@@ -30,6 +30,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { Input } from '@/components/ui/input';
 
 // Mock data for users
 const initialUsers = [
@@ -97,7 +98,7 @@ const getInitials = (name: string) => {
     if (!name) return '';
     const names = name.split(' ');
     if (names.length > 1) {
-        return `${names[0][0]}${names[1][0]}`.toUpperCase();
+        return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
     }
     return name.substring(0, 2).toUpperCase();
 }
@@ -108,6 +109,7 @@ export default function UsersPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [userToEdit, setUserToEdit] = useState<any | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const { toast } = useToast();
 
   const handleEditClick = (user: any) => {
@@ -130,6 +132,16 @@ export default function UsersPage() {
     setUserToEdit(null);
     // Here you would refetch the data from your backend
   };
+
+  const filteredUsers = useMemo(() => {
+    if (!searchTerm) return users;
+
+    return users.filter(user =>
+      Object.values(user).some(value =>
+        String(value).toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+  }, [searchTerm, users]);
 
   return (
     <DashboardLayout>
@@ -163,6 +175,16 @@ export default function UsersPage() {
           <Card>
             <CardHeader>
               <CardTitle>Listado de Usuarios</CardTitle>
+                <div className="relative mt-2">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                    type="search"
+                    placeholder="Buscar usuario por nombre, email, empresa..."
+                    className="w-full appearance-none bg-background pl-8 shadow-none md:w-1/3"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
@@ -177,7 +199,7 @@ export default function UsersPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {users.map((user) => (
+                    {filteredUsers.map((user) => (
                       <TableRow key={user.id}>
                         <TableCell>
                           <div className="flex items-center gap-3">

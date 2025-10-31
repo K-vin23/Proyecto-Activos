@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -14,7 +14,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { PlusCircle, X, Calendar as CalendarIcon, Trash2, ArrowLeft, Monitor, Zap, Laptop, ClipboardPlus, Eye, Replace, Download } from 'lucide-react';
+import { PlusCircle, X, Calendar as CalendarIcon, Trash2, ArrowLeft, Monitor, Zap, Laptop, ClipboardPlus, Eye, Replace, Download, Search } from 'lucide-react';
 import DashboardLayout from '@/components/dashboard-layout';
 import Header from '@/components/dashboard/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -721,6 +721,7 @@ export default function ActivosPage() {
   const [isChangeOwnerOpen, setIsChangeOwnerOpen] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<any | null>(null);
   const [selectedAssetType, setSelectedAssetType] = useState<'Equipo de cómputo' | 'Monitor' | 'UPS' | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const handleDialogChange = (open: boolean) => {
     if (!open) {
@@ -765,6 +766,24 @@ export default function ActivosPage() {
         description: `El activo ${assetId} ha sido movido a la papelera.`
     });
   }
+
+  const filteredAssets = useMemo(() => {
+    if (!searchTerm) return assets;
+    return assets.filter(asset =>
+      Object.values(asset).some(value =>
+        String(value).toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+  }, [searchTerm]);
+
+  const filteredDeletedAssets = useMemo(() => {
+    if (!searchTerm) return deletedAssets;
+    return deletedAssets.filter(asset =>
+      Object.values(asset).some(value =>
+        String(value).toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+  }, [searchTerm]);
 
   return (
     <DashboardLayout>
@@ -814,6 +833,16 @@ export default function ActivosPage() {
                 <Card>
                     <CardHeader>
                     <CardTitle>Listado de Activos</CardTitle>
+                    <div className="relative mt-2">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                        type="search"
+                        placeholder="Buscar activo por ID, nombre, categoría..."
+                        className="w-full appearance-none bg-background pl-8 shadow-none md:w-1/3"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
                     </CardHeader>
                     <CardContent>
                     <div className="overflow-x-auto">
@@ -829,7 +858,7 @@ export default function ActivosPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {assets.map((asset) => (
+                            {filteredAssets.map((asset) => (
                             <TableRow key={asset.id}>
                                 <TableCell className="font-medium">{asset.id}</TableCell>
                                 <TableCell>{asset.name}</TableCell>
@@ -971,6 +1000,16 @@ export default function ActivosPage() {
                  <Card>
                     <CardHeader>
                         <CardTitle>Activos Eliminados</CardTitle>
+                        <div className="relative mt-2">
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                            type="search"
+                            placeholder="Buscar en activos eliminados..."
+                            className="w-full appearance-none bg-background pl-8 shadow-none md:w-1/3"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
                     </CardHeader>
                     <CardContent>
                     <div className="overflow-x-auto">
@@ -986,7 +1025,7 @@ export default function ActivosPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {deletedAssets.map((asset) => (
+                            {filteredDeletedAssets.map((asset) => (
                             <TableRow key={asset.id}>
                                 <TableCell className="font-medium">{asset.id}</TableCell>
                                 <TableCell>{asset.name}</TableCell>
@@ -1065,5 +1104,3 @@ export default function ActivosPage() {
     </DashboardLayout>
   );
 }
-
-    
