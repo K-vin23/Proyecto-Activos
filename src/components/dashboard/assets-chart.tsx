@@ -1,5 +1,7 @@
+
 "use client"
 
+import { useMemo } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
 import {
@@ -16,15 +18,6 @@ import {
   ChartConfig,
 } from "@/components/ui/chart"
 
-const chartData = [
-  { department: "TI", assets: 186 },
-  { department: "Marketing", assets: 305 },
-  { department: "Ventas", assets: 237 },
-  { department: "RRHH", assets: 73 },
-  { department: "Operaciones", assets: 209 },
-  { department: "Finanzas", assets: 214 },
-]
-
 const chartConfig = {
   assets: {
     label: "Activos",
@@ -32,7 +25,33 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-export default function AssetsChart() {
+interface AssetsChartProps {
+    assets: any[];
+}
+
+export default function AssetsChart({ assets }: AssetsChartProps) {
+
+  const chartData = useMemo(() => {
+    const departmentData: { [key: string]: number } = {};
+
+    const assetDepartments = assets.map(asset => {
+        // Find user for asset to get department
+        // This is mock logic, in a real app you might have department on the asset or a better join
+        return 'TI'; // Mock, needs real logic
+    });
+
+    // This is mock logic and should be replaced with something real
+    const departments = ["TI", "Marketing", "Ventas", "RRHH", "Operaciones", "Finanzas"];
+    const assetsPerDepartment = Math.floor(assets.length / departments.length);
+    const remainder = assets.length % departments.length;
+    
+    return departments.map((dep, index) => ({
+      department: dep,
+      assets: assetsPerDepartment + (index < remainder ? 1 : 0)
+    }));
+
+  }, [assets]);
+  
   return (
     <Card className="h-full">
       <CardHeader>
@@ -48,6 +67,7 @@ export default function AssetsChart() {
               tickLine={false}
               tickMargin={10}
               axisLine={false}
+              fontSize={12}
             />
             <YAxis />
             <ChartTooltip

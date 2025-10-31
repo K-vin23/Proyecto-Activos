@@ -1,20 +1,37 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { addMonths, differenceInDays } from 'date-fns';
 import DashboardLayout from '@/components/dashboard-layout';
 import Header from '@/components/dashboard/header';
 import SummaryCards from '@/components/dashboard/summary-cards';
 import AssetsChart from '@/components/dashboard/assets-chart';
 import UpcomingMaintenance from '@/components/dashboard/upcoming-maintenance';
-import { assets, assetHistory } from '@/lib/mock-data';
+import { assets, assetHistory, companies, users } from '@/lib/mock-data';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const MAINTENANCE_INTERVAL_MONTHS = 6;
 
 export default function Home() {
+  const [selectedCompany, setSelectedCompany] = useState<string>('all');
+
+  const filteredAssets = useMemo(() => {
+    if (selectedCompany === 'all') {
+      return assets;
+    }
+    return assets.filter(asset => asset.company === selectedCompany);
+  }, [selectedCompany]);
+
+  const filteredUsers = useMemo(() => {
+    if (selectedCompany === 'all') {
+      return users;
+    }
+    return users.filter(user => user.company === selectedCompany);
+  }, [selectedCompany]);
+
   const upcomingMaintenanceList = useMemo(() => {
-    const maintenanceTasks = assets
+    const maintenanceTasks = filteredAssets
       .filter(asset => asset.category === 'Equipo de cómputo' || asset.category === 'UPS')
       .map(asset => {
         const history = (assetHistory as Record<string, any[]>)[asset.id] || [];
@@ -37,7 +54,7 @@ export default function Home() {
       .sort((a, b) => a.daysUntilMaintenance - b.daysUntilMaintenance);
       
     return maintenanceTasks;
-  }, []);
+  }, [filteredAssets]);
 
   return (
     <DashboardLayout>
@@ -45,11 +62,32 @@ export default function Home() {
         <Header />
         <main className="flex-1 overflow-y-auto">
           <div className="flex flex-col gap-4 p-4 md:gap-8 md:p-8">
-            <h1 className="text-2xl font-bold font-headline tracking-tight">Inicio</h1>
-            <SummaryCards openTasks={upcomingMaintenanceList.length} />
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <h1 className="text-2xl font-bold font-headline tracking-tight">Inicio</h1>
+              <div className='w-full sm:w-64'>
+                <Select value={selectedCompany} onValueChange={setSelectedCompany}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar empresa" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas las Empresas</SelectItem>
+                    {companies.map((company) => (
+                      <SelectItem key={company.id} value={company.name}>
+                        {company.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <SummaryCards 
+              totalAssets={filteredAssets.length}
+              totalUsers={filteredUsers.length}
+              openTasks={upcomingMaintenanceList.length} 
+            />
             <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
               <div className="xl:col-span-2">
-                <AssetsChart />
+                <AssetsChart assets={filteredAssets} />
               </div>
               <div className="flex flex-col gap-4 md:gap-8">
                  <UpcomingMaintenance maintenanceList={upcomingMaintenanceList} />

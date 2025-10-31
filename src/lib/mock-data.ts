@@ -1,3 +1,4 @@
+
 import { addMonths, subDays } from 'date-fns';
 
 export const assets = [
@@ -52,6 +53,23 @@ export const assets = [
     model: 'Smart-UPS 1500',
     description: 'Batería reemplazada en Enero 2024.',
   },
+  {
+    id: 'LAP-002',
+    name: 'Laptop HP Elitebook',
+    category: 'Equipo de cómputo',
+    status: 'Asignado',
+    company: 'HYCO',
+    responsable: 'Robert Brown',
+    city: 'Cali',
+    serialNumber: 'HP-ELITE-002',
+    purchaseDate: '2023-08-20',
+    brand: 'HP',
+    model: 'Elitebook 840 G8',
+    processor: 'Intel Core i5-1135G7',
+    ram: '16 GB DDR4',
+    storage: '512 GB SSD',
+    os: 'Windows 11 Pro',
+  }
 ];
 
 export const assetHistory = {
@@ -66,6 +84,9 @@ export const assetHistory = {
         { id: '4', date: '2024-07-20', author: 'Almacén', type: 'Asignación', description: 'Activo asignado a Robert Brown (Ventas).' },
         // This maintenance is overdue to test the logic
         { id: '5', date: '2024-01-10', author: 'Jane Smith', type: 'Mantenimiento', description: 'Revisión de batería y limpieza.' },
+    ],
+    'LAP-002': [
+        { id: '6', date: '2024-02-25', author: 'Almacén', type: 'Mantenimiento', description: 'Mantenimiento preventivo general.' },
     ]
 };
 
@@ -81,14 +102,14 @@ export const deletedAssets = [
 ];
 
 export const users = [
-    { id: '1', name: 'John Doe' },
-    { id: '2', name: 'Jane Smith' },
-    { id: '3', name: 'Robert Brown' },
-    { id: '4', name: 'Almacén' },
-    { id: '5', name: 'Washington Palma' },
-    { id: '6', name: 'Johana Fuentes'},
-    { id: '7', name: 'Claudia Moreno'},
-    { id: '8', name: 'Wilson Rojas'},
+    { id: '1', name: 'John Doe', company: 'PALLOMARO S.A' },
+    { id: '2', name: 'Jane Smith', company: 'FUNDIMETAL' },
+    { id: '3', name: 'Robert Brown', company: 'HYCO' },
+    { id: '4', name: 'Almacén', company: 'PALLOMARO S.A' },
+    { id: '5', name: 'Washington Palma', company: 'PALLOMARO S.A' },
+    { id: '6', name: 'Johana Fuentes', company: 'PALLOMARO S.A'},
+    { id: '7', name: 'Claudia Moreno', company: 'HYCO'},
+    { id: '8', name: 'Wilson Rojas', company: 'FUNDIMETAL'},
   ];
 
 export const companies = [

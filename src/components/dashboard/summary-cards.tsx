@@ -1,7 +1,14 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Archive, Users, ClipboardList } from "lucide-react"
 
-export default function SummaryCards({ openTasks }: { openTasks: number }) {
+interface SummaryCardsProps {
+  totalAssets: number;
+  totalUsers: number;
+  openTasks: number;
+}
+
+export default function SummaryCards({ totalAssets, totalUsers, openTasks }: SummaryCardsProps) {
   return (
     <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
       <Card>
@@ -12,9 +19,9 @@ export default function SummaryCards({ openTasks }: { openTasks: number }) {
           <Archive className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">1,254</div>
+          <div className="text-2xl font-bold">{totalAssets}</div>
           <p className="text-xs text-muted-foreground">
-            +20.1% desde el mes pasado
+            Activos en la empresa seleccionada
           </p>
         </CardContent>
       </Card>
@@ -24,9 +31,9 @@ export default function SummaryCards({ openTasks }: { openTasks: number }) {
           <Users className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">35</div>
+          <div className="text-2xl font-bold">{totalUsers}</div>
           <p className="text-xs text-muted-foreground">
-            +5 desde la semana pasada
+            Usuarios en la empresa seleccionada
           </p>
         </CardContent>
       </Card>
