@@ -277,7 +277,7 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
 
   return (
     <>
-        {onBack && (
+        {(onBack && isEditMode) && (
             <Button variant="ghost" onClick={onBack} className="absolute left-4 top-4">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Volver
@@ -1164,6 +1164,7 @@ export default function ActivosPage() {
                             assetType={getAssetTypeForForm(assetToEdit.category)!} 
                             onSaveSuccess={handleSaveSuccess}
                             assetToEdit={assetToEdit}
+                            onBack={() => handleEditDialogChange(false)}
                         />
                     </>
                 )}
@@ -1178,5 +1179,9 @@ export default function ActivosPage() {
 }
 
     
+
+    
+
+
 
     
