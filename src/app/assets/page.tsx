@@ -668,6 +668,7 @@ interface AdvancedFilters {
 export default function ActivosPage() {
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
   const [isChangeOwnerOpen, setIsChangeOwnerOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -689,17 +690,27 @@ export default function ActivosPage() {
     setIsCreateDialogOpen(open);
   }
 
-  const handleHistoryDialogChange = (open: boolean) => {
+  const handleDetailDialogChange = (open: boolean) => {
     if (!open) {
         setSelectedAsset(null);
+        // Ensure other dialogs close when the main detail dialog closes
+        setIsHistoryDialogOpen(false);
+        setIsChangeOwnerOpen(false);
+        setIsEditDialogOpen(false);
     }
+    setIsDetailDialogOpen(open);
+  };
+
+  const handleOpenDetailDialog = (asset: any) => {
+    setSelectedAsset(asset);
+    setIsDetailDialogOpen(true);
+  };
+
+  const handleHistoryDialogChange = (open: boolean) => {
     setIsHistoryDialogOpen(open);
   }
 
   const handleChangeOwnerDialogChange = (open: boolean) => {
-    if (!open) {
-        setSelectedAsset(null);
-    }
     setIsChangeOwnerOpen(open);
   }
   
@@ -710,13 +721,11 @@ export default function ActivosPage() {
       setIsEditDialogOpen(open);
   }
 
-  const handleOpenHistoryDialog = (asset: any) => {
-    setSelectedAsset(asset);
+  const handleOpenHistoryDialog = () => {
     setIsHistoryDialogOpen(true);
   };
 
-  const handleOpenChangeOwnerDialog = (asset: any) => {
-    setSelectedAsset(asset);
+  const handleOpenChangeOwnerDialog = () => {
     setIsChangeOwnerOpen(true);
   }
 
@@ -920,84 +929,17 @@ export default function ActivosPage() {
                                 </TableCell>
                                 <TableCell className="flex justify-end gap-2">
                                     <TooltipProvider>
-                                        <Dialog>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <DialogTrigger asChild>
-                                                        <Button variant="outline" size="icon">
-                                                            <Eye className="h-4 w-4" />
-                                                        </Button>
-                                                    </DialogTrigger>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p>Ver Equipo</p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                            <DialogContent className="w-[90vw] max-w-[90vw] md:w-full md:max-w-4xl rounded-lg max-h-[90vh] overflow-y-auto">
-                                                <DialogHeader>
-                                                    <div className="flex items-center justify-between">
-                                                        <div>
-                                                            <DialogTitle className="text-2xl font-headline">Detalles del Activo: {asset.name}</DialogTitle>
-                                                            <DialogDescription>
-                                                                Información completa y registros de mantenimiento.
-                                                            </DialogDescription>
-                                                        </div>
-                                                        <Button variant="outline">
-                                                            <Download className="mr-2 h-4 w-4" />
-                                                            Descargar PDF
-                                                        </Button>
-                                                    </div>
-                                                </DialogHeader>
-                                                <div className="py-4 space-y-6">
-                                                    <Card>
-                                                        <CardHeader>
-                                                            <CardTitle className="text-xl">Especificaciones Técnicas</CardTitle>
-                                                        </CardHeader>
-                                                        <CardContent className="space-y-4">
-                                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                                                                <div className="md:col-span-1"><span className="font-semibold">ID Activo: </span>{asset.id}</div>
-                                                                <div className="md:col-span-1"><span className="font-semibold">Categoría: </span>{asset.category}</div>
-                                                                <div className="md:col-span-1"><span className="font-semibold">Estado: </span>{asset.status}</div>
-                                                                <div className="md:col-span-1"><span className="font-semibold">Empresa: </span>{asset.company}</div>
-                                                                <div className="md:col-span-1"><span className="font-semibold">Responsable: </span>{asset.responsable}</div>
-                                                                <div className="md:col-span-1"><span className="font-semibold">Nº de Serie: </span>{asset.serialNumber}</div>
-                                                                <div className="md:col-span-1"><span className="font-semibold">Fecha Compra: </span>{asset.purchaseDate}</div>
-                                                                {asset.invoiceNumber && <div className="md:col-span-1"><span className="font-semibold">Nº Factura: </span>{asset.invoiceNumber}</div>}
-                                                                <div className="md:col-span-1"><span className="font-semibold">Marca: </span>{asset.brand}</div>
-                                                                <div className="md:col-span-1"><span className="font-semibold">Modelo: </span>{asset.model}</div>
-                                                                <div className="md:col-span-1"><span className="font-semibold">Ciudad: </span>{asset.city}</div>
-                                                                {asset.processor && <div className="md:col-span-1"><span className="font-semibold">Procesador: </span>{asset.processor}</div>}
-                                                                {asset.ram && <div className="md:col-span-1"><span className="font-semibold">RAM: </span>{asset.ram}</div>}
-                                                                {asset.storage && <div className="md:col-span-1"><span className="font-semibold">Almacenamiento: </span>{asset.storage}</div>}
-                                                                {asset.description && <div className="md:col-span-4"><span className="font-semibold">Descripción: </span>{asset.description}</div>}
-                                                            </div>
-
-                                                            {(asset.os || asset.officeVersion) && <Separator className="my-4" />}
-
-                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                                                                {asset.os && asset.osKey && <div className="space-y-1"><div className="font-semibold">Sistema Operativo</div><div>{asset.os} ({asset.osKey})</div></div>}
-                                                                {asset.officeVersion && asset.officeKey && <div className="space-y-1"><div className="font-semibold">Office</div><div>{asset.officeVersion.replace('MICROSOFT OFFICE HOGAR Y EMPRESAS ', '')} ({asset.officeKey})</div></div>}
-                                                            </div>
-                                                        </CardContent>
-                                                    </Card>
-                                                    <AssetHistory assetId={asset.id}/>
-                                                </div>
-                                                <DialogFooter className="border-t pt-4 flex-wrap justify-start gap-2">
-                                                    <Button variant="secondary" onClick={() => handleOpenHistoryDialog(asset)}>
-                                                        <ClipboardPlus className="mr-2 h-4 w-4" />
-                                                        Añadir Historial
-                                                    </Button>
-                                                     <Button variant="secondary" onClick={() => handleOpenChangeOwnerDialog(asset)}>
-                                                        <Replace className="mr-2 h-4 w-4" />
-                                                        Cambiar Responsable
-                                                    </Button>
-                                                    <Button variant="outline" onClick={() => handleOpenEditDialog(asset)}>
-                                                        <Pencil className="mr-2 h-4 w-4" />
-                                                        Editar
-                                                    </Button>
-                                                </DialogFooter>
-                                            </DialogContent>
-                                        </Dialog>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button variant="outline" size="icon" onClick={() => handleOpenDetailDialog(asset)}>
+                                                    <Eye className="h-4 w-4" />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Ver Equipo</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                        
 
                                         <AlertDialog>
                                             <Tooltip>
@@ -1091,6 +1033,79 @@ export default function ActivosPage() {
         </main>
       </div>
 
+       {/* Asset Details Dialog */}
+      <Dialog open={isDetailDialogOpen} onOpenChange={handleDetailDialogChange}>
+        <DialogContent className="w-[90vw] max-w-[90vw] md:w-full md:max-w-4xl rounded-lg max-h-[90vh] overflow-y-auto">
+            {selectedAsset && (
+            <>
+                <DialogHeader>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <DialogTitle className="text-2xl font-headline">Detalles del Activo: {selectedAsset.name}</DialogTitle>
+                            <DialogDescription>
+                                Información completa y registros de mantenimiento.
+                            </DialogDescription>
+                        </div>
+                        <Button variant="outline">
+                            <Download className="mr-2 h-4 w-4" />
+                            Descargar PDF
+                        </Button>
+                    </div>
+                </DialogHeader>
+                <div className="py-4 space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-xl">Especificaciones Técnicas</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                <div className="md:col-span-1"><span className="font-semibold">ID Activo: </span>{selectedAsset.id}</div>
+                                <div className="md:col-span-1"><span className="font-semibold">Categoría: </span>{selectedAsset.category}</div>
+                                <div className="md:col-span-1"><span className="font-semibold">Estado: </span>{selectedAsset.status}</div>
+                                <div className="md:col-span-1"><span className="font-semibold">Empresa: </span>{selectedAsset.company}</div>
+                                <div className="md:col-span-1"><span className="font-semibold">Responsable: </span>{selectedAsset.responsable}</div>
+                                <div className="md:col-span-1"><span className="font-semibold">Nº de Serie: </span>{selectedAsset.serialNumber}</div>
+                                <div className="md:col-span-1"><span className="font-semibold">Fecha Compra: </span>{selectedAsset.purchaseDate}</div>
+                                {selectedAsset.invoiceNumber && <div className="md:col-span-1"><span className="font-semibold">Nº Factura: </span>{selectedAsset.invoiceNumber}</div>}
+                                <div className="md:col-span-1"><span className="font-semibold">Marca: </span>{selectedAsset.brand}</div>
+                                <div className="md:col-span-1"><span className="font-semibold">Modelo: </span>{selectedAsset.model}</div>
+                                <div className="md:col-span-1"><span className="font-semibold">Ciudad: </span>{selectedAsset.city}</div>
+                                {selectedAsset.processor && <div className="md:col-span-1"><span className="font-semibold">Procesador: </span>{selectedAsset.processor}</div>}
+                                {selectedAsset.ram && <div className="md:col-span-1"><span className="font-semibold">RAM: </span>{selectedAsset.ram}</div>}
+                                {selectedAsset.storage && <div className="md:col-span-1"><span className="font-semibold">Almacenamiento: </span>{selectedAsset.storage}</div>}
+                                {selectedAsset.description && <div className="md:col-span-4"><span className="font-semibold">Descripción: </span>{selectedAsset.description}</div>}
+                            </div>
+
+                            {(selectedAsset.os || selectedAsset.officeVersion) && <Separator className="my-4" />}
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                {selectedAsset.os && selectedAsset.osKey && <div className="space-y-1"><div className="font-semibold">Sistema Operativo</div><div>{selectedAsset.os} ({selectedAsset.osKey})</div></div>}
+                                {selectedAsset.officeVersion && selectedAsset.officeKey && <div className="space-y-1"><div className="font-semibold">Office</div><div>{selectedAsset.officeVersion.replace('MICROSOFT OFFICE HOGAR Y EMPRESAS ', '')} ({selectedAsset.officeKey})</div></div>}
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <AssetHistory assetId={selectedAsset.id}/>
+                </div>
+                <DialogFooter className="border-t pt-4 flex-wrap justify-start gap-2">
+                    <Button variant="secondary" onClick={handleOpenHistoryDialog}>
+                        <ClipboardPlus className="mr-2 h-4 w-4" />
+                        Añadir Historial
+                    </Button>
+                    <Button variant="secondary" onClick={handleOpenChangeOwnerDialog}>
+                        <Replace className="mr-2 h-4 w-4" />
+                        Cambiar Responsable
+                    </Button>
+                    <Button variant="outline" onClick={() => handleOpenEditDialog(selectedAsset)}>
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Editar
+                    </Button>
+                </DialogFooter>
+            </>
+            )}
+        </DialogContent>
+      </Dialog>
+
+
       {/* Add History Dialog */}
       <Dialog open={isHistoryDialogOpen} onOpenChange={handleHistoryDialogChange}>
             <DialogContent className="w-[90vw] max-w-[90vw] md:w-full md:max-w-xl rounded-lg">
@@ -1171,11 +1186,3 @@ export default function ActivosPage() {
     </DashboardLayout>
   );
 }
-
-    
-
-    
-
-
-
-    
