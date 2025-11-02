@@ -57,7 +57,7 @@ export default function UpcomingMaintenance({ maintenanceList }: UpcomingMainten
                     <div className="flex items-center gap-4 w-full">
                         {asset.isOverdue && (
                             <Tooltip>
-                                <TooltipTrigger>
+                                <TooltipTrigger asChild>
                                     <AlertCircle className="h-5 w-5 text-destructive shrink-0" />
                                 </TooltipTrigger>
                                 <TooltipContent>
@@ -90,4 +90,3 @@ export default function UpcomingMaintenance({ maintenanceList }: UpcomingMainten
     </Card>
   );
 }
-
