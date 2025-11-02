@@ -44,7 +44,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     setTimeout(() => {
-      if (username === '94432420' && password === 'wwpq12345') {
+      if (username === '94432420' && password === 'wpq12345') {
         toast({
           title: 'Inicio de Sesión Exitoso',
           description: 'Bienvenido, Whashintong Palma.',
