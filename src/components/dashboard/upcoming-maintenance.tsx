@@ -3,6 +3,7 @@
 
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { useRouter } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -13,6 +14,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle } from 'lucide-react';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Button } from '../ui/button';
 
 interface MaintenanceTask {
   id: string;
@@ -27,6 +29,11 @@ interface UpcomingMaintenanceProps {
 }
 
 export default function UpcomingMaintenance({ maintenanceList }: UpcomingMaintenanceProps) {
+  const router = useRouter();
+
+  const handleAssetClick = (assetId: string) => {
+    router.push(`/assets?openAssetId=${assetId}`);
+  };
   
   const getStatusBadge = (days: number) => {
     if (days < 0) return <Badge variant="destructive">Vencido</Badge>;
@@ -40,38 +47,40 @@ export default function UpcomingMaintenance({ maintenanceList }: UpcomingMainten
         <CardTitle className="font-headline">Próximos Mantenimientos</CardTitle>
         <CardDescription>Equipos que requieren mantenimiento preventivo.</CardDescription>
       </CardHeader>
-      <CardContent className="grid gap-4">
+      <CardContent className="grid gap-2">
         <TooltipProvider>
             {maintenanceList === null ? (
                 <p className="text-sm text-muted-foreground text-center">Calculando...</p>
             ) : maintenanceList.length > 0 ? (
                 maintenanceList.map((asset) => (
-                <div className="flex items-center gap-4" key={asset.id}>
-                    {asset.isOverdue && (
-                        <Tooltip>
-                            <TooltipTrigger>
-                                <AlertCircle className="h-5 w-5 text-destructive shrink-0" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Mantenimiento Vencido</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    )}
-                     {!asset.isOverdue && (
-                        <div className="bg-primary rounded-full h-2 w-2 mt-1 shrink-0" />
-                     )}
-                    <div className="grid gap-1 flex-1">
-                        <p className="text-sm font-medium leading-none truncate">
-                            {asset.name} ({asset.id})
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                            Próximo Mant: {format(asset.nextMaintenanceDate, 'dd LLL, yyyy', { locale: es })}
-                        </p>
+                <Button variant="ghost" className="h-auto justify-start p-2" key={asset.id} onClick={() => handleAssetClick(asset.id)}>
+                    <div className="flex items-center gap-4 w-full">
+                        {asset.isOverdue && (
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <AlertCircle className="h-5 w-5 text-destructive shrink-0" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Mantenimiento Vencido</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        )}
+                        {!asset.isOverdue && (
+                            <div className="bg-primary rounded-full h-2 w-2 shrink-0" />
+                        )}
+                        <div className="grid gap-1 flex-1 text-left">
+                            <p className="text-sm font-medium leading-none truncate">
+                                {asset.name} ({asset.id})
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                                Próximo Mant: {format(asset.nextMaintenanceDate, 'dd LLL, yyyy', { locale: es })}
+                            </p>
+                        </div>
+                        <div className="ml-auto">
+                            {getStatusBadge(asset.daysUntilMaintenance)}
+                        </div>
                     </div>
-                    <div className="ml-auto">
-                        {getStatusBadge(asset.daysUntilMaintenance)}
-                    </div>
-                </div>
+                </Button>
                 ))
             ) : (
                 <p className="text-sm text-muted-foreground text-center">No hay mantenimientos próximos.</p>
@@ -81,3 +90,4 @@ export default function UpcomingMaintenance({ maintenanceList }: UpcomingMainten
     </Card>
   );
 }
+

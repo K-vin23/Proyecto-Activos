@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -665,7 +666,8 @@ interface AdvancedFilters {
     status: string;
 }
 
-export default function ActivosPage() {
+function ActivosPageComponent() {
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
@@ -682,6 +684,18 @@ export default function ActivosPage() {
     category: '',
     status: '',
   });
+
+  useEffect(() => {
+    const assetIdToOpen = searchParams.get('openAssetId');
+    if (assetIdToOpen) {
+        const assetToOpen = assets.find(asset => asset.id === assetIdToOpen);
+        if (assetToOpen) {
+            handleOpenDetailDialog(assetToOpen);
+        }
+    }
+    // We only want to run this on initial load based on URL params
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleCreateDialogChange = (open: boolean) => {
     if (!open) {
@@ -1186,3 +1200,15 @@ export default function ActivosPage() {
     </DashboardLayout>
   );
 }
+
+// Wrapping the component that uses `useSearchParams` in a Suspense boundary
+// is recommended, but for simplicity we'll wrap the page export itself.
+// This is not ideal for performance but works for this case.
+export default function ActivosPage() {
+    return (
+        <React.Suspense fallback={<div>Cargando...</div>}>
+            <ActivosPageComponent />
+        </React.Suspense>
+    );
+}
+
