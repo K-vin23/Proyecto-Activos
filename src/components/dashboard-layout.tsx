@@ -3,6 +3,7 @@
 
 import type { FC, ReactNode } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   SidebarProvider,
   Sidebar,
@@ -18,10 +19,10 @@ import {
   LayoutDashboard,
   Users,
   Archive,
-  LifeBuoy,
   LogOut,
   Box,
   Building,
+  FileText,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { usePathname } from 'next/navigation';
@@ -29,9 +30,15 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
   const pathname = usePathname();
+  const router = useRouter();
   const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar');
 
   const isActive = (path: string) => pathname === path;
+
+  const handleLogout = () => {
+    localStorage.removeItem('isAuthenticated');
+    router.replace('/login');
+  };
 
   return (
     <SidebarProvider>
@@ -88,7 +95,7 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
               </Avatar>
               <div className="flex flex-col overflow-hidden">
                 <span className="text-sm font-semibold text-sidebar-foreground truncate">
-                  Washington Palma
+                  Whashintong Palma
                 </span>
                 <span className="text-xs text-sidebar-foreground/70 truncate">
                   fminformaticaytecnologia@gmail.com
@@ -97,7 +104,7 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
             </div>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton>
+                <SidebarMenuButton onClick={handleLogout}>
                   <LogOut />
                   <span>Cerrar Sesión</span>
                 </SidebarMenuButton>

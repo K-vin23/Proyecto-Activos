@@ -26,10 +26,21 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 export default function Header() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    localStorage.removeItem('isAuthenticated');
+    router.replace('/login');
+    toast({
+      title: 'Sesión Cerrada',
+      description: 'Has cerrado sesión exitosamente.',
+    });
+  };
 
   const handleChangePassword = () => {
     // Lógica para cambiar contraseña
@@ -67,7 +78,7 @@ export default function Header() {
               </DropdownMenuItem>
             </DialogTrigger>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Cerrar Sesión</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>Cerrar Sesión</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 
