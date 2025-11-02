@@ -22,21 +22,24 @@ import { Separator } from "../ui/separator";
 // Mock onRegister function
 const onRegister = (data: RegisterSchema) => {
   console.log("Registration data submitted:", data);
-  // Here you would connect to Firebase, Supabase, PostgreSQL, etc.
+  // Here you would connect to your database connector (e.g., Firebase, Supabase, PostgreSQL)
 };
 
 interface RegisterFormProps {
     onRegisterSuccess?: () => void;
     companies: { id: number; name: string }[];
-    userToEdit?: Partial<RegisterSchema> | null;
+    userToEdit?: Partial<RegisterSchema> & { idNumber?: string, email?: string };
 }
 
 export default function RegisterForm({ onRegisterSuccess, companies, userToEdit }: RegisterFormProps) {
   const { toast } = useToast();
   const isEditMode = !!userToEdit;
 
+  // If in edit mode, we don't need to validate the password
+  const finalSchema = isEditMode ? registerSchema.omit({ password: true }) : registerSchema;
+
   const form = useForm<RegisterSchema>({
-    resolver: zodResolver(registerSchema),
+    resolver: zodResolver(finalSchema),
     defaultValues: userToEdit || {
       company: "",
       idNumber: "",
@@ -243,7 +246,7 @@ export default function RegisterForm({ onRegisterSuccess, companies, userToEdit 
                 />
             )}
         </div>
-        <div className="md:col-span-2">
+        <div className="md:col-span-2 pt-4">
             <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
                 {isEditMode ? 'Guardar Cambios' : 'Registrar'}
             </Button>
