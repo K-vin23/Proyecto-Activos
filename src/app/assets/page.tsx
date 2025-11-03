@@ -712,8 +712,16 @@ function ActivosPageComponent() {
     category: '',
     status: '',
   });
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [userIdNumber, setUserIdNumber] = useState<string | null>(null);
+
 
   useEffect(() => {
+    const role = localStorage.getItem('userRole');
+    const idNumber = localStorage.getItem('userIdNumber');
+    setUserRole(role);
+    setUserIdNumber(idNumber);
+
     const assetIdToOpen = searchParams.get('openAssetId');
     if (assetIdToOpen) {
         const assetToOpen = assets.find(asset => asset.id === assetIdToOpen);
@@ -745,16 +753,31 @@ function ActivosPageComponent() {
   };
 
   const handleHistoryDialogChange = (open: boolean) => {
+    if (open) {
+        setIsDetailDialogOpen(false);
+    } else if (selectedAsset) {
+        setIsDetailDialogOpen(true);
+    }
     setIsHistoryDialogOpen(open);
   }
 
   const handleChangeOwnerDialogChange = (open: boolean) => {
+    if (open) {
+        setIsDetailDialogOpen(false);
+    } else if (selectedAsset) {
+        setIsDetailDialogOpen(true);
+    }
     setIsChangeOwnerOpen(open);
   }
   
   const handleEditDialogChange = (open: boolean) => {
       if (!open) {
           setAssetToEdit(null);
+          if (selectedAsset) {
+            setIsDetailDialogOpen(true);
+          }
+      } else {
+        setIsDetailDialogOpen(false);
       }
       setIsEditDialogOpen(open);
   }
@@ -796,7 +819,18 @@ function ActivosPageComponent() {
   };
 
   const filteredAssets = useMemo(() => {
-    return assets.filter(asset => {
+    let assetsToFilter = assets;
+
+    if (userRole === 'estandar' && userIdNumber) {
+        const user = users.find(u => u.idNumber === userIdNumber);
+        if (user) {
+            assetsToFilter = assets.filter(asset => asset.responsable === user.name);
+        } else {
+            assetsToFilter = [];
+        }
+    }
+    
+    return assetsToFilter.filter(asset => {
       // Advanced filters
       const matchesResponsable = advancedFilters.responsable ? asset.responsable === advancedFilters.responsable : true;
       const matchesCompany = advancedFilters.company ? asset.company === advancedFilters.company : true;
@@ -810,7 +844,7 @@ function ActivosPageComponent() {
       
       return matchesResponsable && matchesCompany && matchesCategory && matchesStatus && matchesSearchTerm;
     });
-  }, [searchTerm, advancedFilters]);
+  }, [searchTerm, advancedFilters, userRole, userIdNumber]);
 
   const filteredDeletedAssets = useMemo(() => {
     if (!searchTerm) return deletedAssets;
@@ -834,6 +868,8 @@ function ActivosPageComponent() {
       }
   }
 
+  const isStandardUser = userRole === 'estandar';
+
 
   return (
     <DashboardLayout>
@@ -842,42 +878,44 @@ function ActivosPageComponent() {
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold font-headline tracking-tight">Activos</h1>
-            <Dialog open={isCreateDialogOpen} onOpenChange={handleCreateDialogChange}>
-              <DialogTrigger asChild>
-                <Button>
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Nuevo Activo
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="w-[90vw] max-w-[90vw] md:w-full md:max-w-4xl rounded-lg max-h-[90vh] overflow-y-auto p-0">
-                {!selectedAssetType ? (
-                    <AssetTypeSelector onSelect={setSelectedAssetType} onCancel={() => handleCreateDialogChange(false)} />
-                ) : (
-                    <>
-                    <DialogHeader className="pt-12 px-6">
-                        <DialogTitle className="text-2xl font-headline text-center">Registrar nuevo {selectedAssetType.toLowerCase()}</DialogTitle>
-                        <DialogDescription className="text-center">
-                            Introduce los datos para registrar el activo en el sistema.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <AssetForm 
-                        assetType={selectedAssetType} 
-                        onSaveSuccess={handleSaveSuccess}
-                        onBack={() => setSelectedAssetType(null)} 
-                    />
-                    </>
-                )}
-                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-                    <X className="h-4 w-4" />
-                    <span className="sr-only">Close</span>
-                </DialogClose>
-              </DialogContent>
-            </Dialog>
+            {!isStandardUser && (
+              <Dialog open={isCreateDialogOpen} onOpenChange={handleCreateDialogChange}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Nuevo Activo
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="w-[90vw] max-w-[90vw] md:w-full md:max-w-4xl rounded-lg max-h-[90vh] overflow-y-auto p-0">
+                  {!selectedAssetType ? (
+                      <AssetTypeSelector onSelect={setSelectedAssetType} onCancel={() => handleCreateDialogChange(false)} />
+                  ) : (
+                      <>
+                      <DialogHeader className="pt-12 px-6">
+                          <DialogTitle className="text-2xl font-headline text-center">Registrar nuevo {selectedAssetType.toLowerCase()}</DialogTitle>
+                          <DialogDescription className="text-center">
+                              Introduce los datos para registrar el activo en el sistema.
+                          </DialogDescription>
+                      </DialogHeader>
+                      <AssetForm 
+                          assetType={selectedAssetType} 
+                          onSaveSuccess={handleSaveSuccess}
+                          onBack={() => setSelectedAssetType(null)} 
+                      />
+                      </>
+                  )}
+                  <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+                      <X className="h-4 w-4" />
+                      <span className="sr-only">Close</span>
+                  </DialogClose>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
           <Tabs defaultValue="all">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className={`grid w-full ${isStandardUser ? 'grid-cols-1' : 'grid-cols-2'}`}>
                 <TabsTrigger value="all">Listado de Activos</TabsTrigger>
-                <TabsTrigger value="deleted">Activos Eliminados</TabsTrigger>
+                {!isStandardUser && <TabsTrigger value="deleted">Activos Eliminados</TabsTrigger>}
             </TabsList>
             <TabsContent value="all">
                 <Card>
@@ -894,50 +932,52 @@ function ActivosPageComponent() {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 />
                             </div>
-                            <Accordion type="single" collapsible className="w-full">
-                                <AccordionItem value="advanced-search">
-                                    <AccordionTrigger>
-                                        <div className="flex items-center gap-2">
-                                            <Filter className="h-4 w-4" />
-                                            Búsqueda Avanzada
-                                        </div>
-                                    </AccordionTrigger>
-                                    <AccordionContent className="pt-4">
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                            <Select value={advancedFilters.responsable} onValueChange={(value) => handleAdvancedFilterChange('responsable', value)}>
-                                                <SelectTrigger><SelectValue placeholder="Responsable" /></SelectTrigger>
-                                                <SelectContent>
-                                                    {users.map(user => <SelectItem key={user.id} value={user.name}>{user.name}</SelectItem>)}
-                                                </SelectContent>
-                                            </Select>
-                                            <Select value={advancedFilters.company} onValueChange={(value) => handleAdvancedFilterChange('company', value)}>
-                                                <SelectTrigger><SelectValue placeholder="Empresa" /></SelectTrigger>
-                                                <SelectContent>
-                                                    {companies.map(comp => <SelectItem key={comp.id} value={comp.name}>{comp.name}</SelectItem>)}
-                                                </SelectContent>
-                                            </Select>
-                                            <Select value={advancedFilters.category} onValueChange={(value) => handleAdvancedFilterChange('category', value)}>
-                                                <SelectTrigger><SelectValue placeholder="Categoría" /></SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="Equipo de cómputo">Equipo de cómputo</SelectItem>
-                                                    <SelectItem value="Monitor">Monitor</SelectItem>
-                                                    <SelectItem value="UPS">UPS</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            <Select value={advancedFilters.status} onValueChange={(value) => handleAdvancedFilterChange('status', value)}>
-                                                <SelectTrigger><SelectValue placeholder="Estado" /></SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="Asignado">Asignado</SelectItem>
-                                                    <SelectItem value="En Almacén">En Almacén</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div className="pt-4 flex justify-end">
-                                            <Button variant="ghost" onClick={clearAdvancedFilters}>Limpiar filtros</Button>
-                                        </div>
-                                    </AccordionContent>
-                                </AccordionItem>
-                            </Accordion>
+                            {!isStandardUser && (
+                              <Accordion type="single" collapsible className="w-full">
+                                  <AccordionItem value="advanced-search">
+                                      <AccordionTrigger>
+                                          <div className="flex items-center gap-2">
+                                              <Filter className="h-4 w-4" />
+                                              Búsqueda Avanzada
+                                          </div>
+                                      </AccordionTrigger>
+                                      <AccordionContent className="pt-4">
+                                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                              <Select value={advancedFilters.responsable} onValueChange={(value) => handleAdvancedFilterChange('responsable', value)}>
+                                                  <SelectTrigger><SelectValue placeholder="Responsable" /></SelectTrigger>
+                                                  <SelectContent>
+                                                      {users.map(user => <SelectItem key={user.id} value={user.name}>{user.name}</SelectItem>)}
+                                                  </SelectContent>
+                                              </Select>
+                                              <Select value={advancedFilters.company} onValueChange={(value) => handleAdvancedFilterChange('company', value)}>
+                                                  <SelectTrigger><SelectValue placeholder="Empresa" /></SelectTrigger>
+                                                  <SelectContent>
+                                                      {companies.map(comp => <SelectItem key={comp.id} value={comp.name}>{comp.name}</SelectItem>)}
+                                                  </SelectContent>
+                                              </Select>
+                                              <Select value={advancedFilters.category} onValueChange={(value) => handleAdvancedFilterChange('category', value)}>
+                                                  <SelectTrigger><SelectValue placeholder="Categoría" /></SelectTrigger>
+                                                  <SelectContent>
+                                                      <SelectItem value="Equipo de cómputo">Equipo de cómputo</SelectItem>
+                                                      <SelectItem value="Monitor">Monitor</SelectItem>
+                                                      <SelectItem value="UPS">UPS</SelectItem>
+                                                  </SelectContent>
+                                              </Select>
+                                              <Select value={advancedFilters.status} onValueChange={(value) => handleAdvancedFilterChange('status', value)}>
+                                                  <SelectTrigger><SelectValue placeholder="Estado" /></SelectTrigger>
+                                                  <SelectContent>
+                                                      <SelectItem value="Asignado">Asignado</SelectItem>
+                                                      <SelectItem value="En Almacén">En Almacén</SelectItem>
+                                                  </SelectContent>
+                                              </Select>
+                                          </div>
+                                          <div className="pt-4 flex justify-end">
+                                              <Button variant="ghost" onClick={clearAdvancedFilters}>Limpiar filtros</Button>
+                                          </div>
+                                      </AccordionContent>
+                                  </AccordionItem>
+                              </Accordion>
+                            )}
                         </div>
                     </CardHeader>
                     <CardContent>
@@ -978,35 +1018,36 @@ function ActivosPageComponent() {
                                             </TooltipContent>
                                         </Tooltip>
                                         
-
-                                        <AlertDialog>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <AlertDialogTrigger asChild>
-                                                        <Button variant="destructive" size="icon">
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    </AlertDialogTrigger>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p>Dar de Baja</p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader>
-                                                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    Esta acción moverá el activo <span className="font-semibold">{asset.id}</span> a la lista de activos eliminados. 
-                                                    Introduce el motivo de la baja.
-                                                </AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <Textarea placeholder="Motivo de la baja (ej: dañado, obsoleto, etc.)" />
-                                                <AlertDialogFooter>
-                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                <AlertDialogAction onClick={() => handleDeleteAsset(asset.id)}>Confirmar Baja</AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
+                                        {!isStandardUser && (
+                                          <AlertDialog>
+                                              <Tooltip>
+                                                  <TooltipTrigger asChild>
+                                                      <AlertDialogTrigger asChild>
+                                                          <Button variant="destructive" size="icon">
+                                                              <Trash2 className="h-4 w-4" />
+                                                          </Button>
+                                                      </AlertDialogTrigger>
+                                                  </TooltipTrigger>
+                                                  <TooltipContent>
+                                                      <p>Dar de Baja</p>
+                                                  </TooltipContent>
+                                              </Tooltip>
+                                              <AlertDialogContent>
+                                                  <AlertDialogHeader>
+                                                  <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                                  <AlertDialogDescription>
+                                                      Esta acción moverá el activo <span className="font-semibold">{asset.id}</span> a la lista de activos eliminados. 
+                                                      Introduce el motivo de la baja.
+                                                  </AlertDialogDescription>
+                                                  </AlertDialogHeader>
+                                                  <Textarea placeholder="Motivo de la baja (ej: dañado, obsoleto, etc.)" />
+                                                  <AlertDialogFooter>
+                                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                  <AlertDialogAction onClick={() => handleDeleteAsset(asset.id)}>Confirmar Baja</AlertDialogAction>
+                                                  </AlertDialogFooter>
+                                              </AlertDialogContent>
+                                          </AlertDialog>
+                                        )}
                                     </TooltipProvider>
                                 </TableCell>
                             </TableRow>
@@ -1017,56 +1058,58 @@ function ActivosPageComponent() {
                     </CardContent>
                 </Card>
             </TabsContent>
-            <TabsContent value="deleted">
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Activos Eliminados</CardTitle>
-                        <div className="relative mt-2">
-                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                            <Input
-                            type="search"
-                            placeholder="Buscar en activos eliminados..."
-                            className="w-full appearance-none bg-background pl-8 shadow-none md:w-1/3"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                    <div className="overflow-x-auto">
-                        <Table>
-                        <TableHeader>
-                            <TableRow>
-                            <TableHead>ID Activo</TableHead>
-                            <TableHead>Nombre</TableHead>
-                            <TableHead>Categoría</TableHead>
-                            <TableHead>Fecha de Baja</TableHead>
-                            <TableHead>Motivo</TableHead>
-                            <TableHead>Acciones</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {filteredDeletedAssets.map((asset) => (
-                            <TableRow key={asset.id}>
-                                <TableCell className="font-medium">{asset.id}</TableCell>
-                                <TableCell>{asset.name}</TableCell>
-                                <TableCell>{asset.category}</TableCell>
-                                <TableCell>{asset.deletionDate}</TableCell>
-                                <TableCell>{asset.reason}</TableCell>
-                                <TableCell>
-                                <Button variant="outline" size="sm">
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Restaurar
-                                </Button>
-                                </TableCell>
-                            </TableRow>
-                            ))}
-                        </TableBody>
-                        </Table>
-                    </div>
-                    </CardContent>
-                </Card>
-            </TabsContent>
+            {!isStandardUser && (
+              <TabsContent value="deleted">
+                  <Card>
+                      <CardHeader>
+                          <CardTitle>Activos Eliminados</CardTitle>
+                          <div className="relative mt-2">
+                              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                              <Input
+                              type="search"
+                              placeholder="Buscar en activos eliminados..."
+                              className="w-full appearance-none bg-background pl-8 shadow-none md:w-1/3"
+                              value={searchTerm}
+                              onChange={(e) => setSearchTerm(e.target.value)}
+                              />
+                          </div>
+                      </CardHeader>
+                      <CardContent>
+                      <div className="overflow-x-auto">
+                          <Table>
+                          <TableHeader>
+                              <TableRow>
+                              <TableHead>ID Activo</TableHead>
+                              <TableHead>Nombre</TableHead>
+                              <TableHead>Categoría</TableHead>
+                              <TableHead>Fecha de Baja</TableHead>
+                              <TableHead>Motivo</TableHead>
+                              <TableHead>Acciones</TableHead>
+                              </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                              {filteredDeletedAssets.map((asset) => (
+                              <TableRow key={asset.id}>
+                                  <TableCell className="font-medium">{asset.id}</TableCell>
+                                  <TableCell>{asset.name}</TableCell>
+                                  <TableCell>{asset.category}</TableCell>
+                                  <TableCell>{asset.deletionDate}</TableCell>
+                                  <TableCell>{asset.reason}</TableCell>
+                                  <TableCell>
+                                  <Button variant="outline" size="sm">
+                                      <Trash2 className="mr-2 h-4 w-4" />
+                                      Restaurar
+                                  </Button>
+                                  </TableCell>
+                              </TableRow>
+                              ))}
+                          </TableBody>
+                          </Table>
+                      </div>
+                      </CardContent>
+                  </Card>
+              </TabsContent>
+            )}
           </Tabs>
         </main>
       </div>
@@ -1124,20 +1167,22 @@ function ActivosPageComponent() {
                     </Card>
                     <AssetHistory assetId={selectedAsset.id}/>
                 </div>
-                <DialogFooter className="border-t pt-4 flex-wrap justify-start gap-2">
-                    <Button variant="secondary" onClick={handleOpenHistoryDialog}>
-                        <ClipboardPlus className="mr-2 h-4 w-4" />
-                        Añadir Historial
-                    </Button>
-                    <Button variant="secondary" onClick={handleOpenChangeOwnerDialog}>
-                        <Replace className="mr-2 h-4 w-4" />
-                        Cambiar Responsable
-                    </Button>
-                    <Button variant="outline" onClick={() => handleOpenEditDialog(selectedAsset)}>
-                        <Pencil className="mr-2 h-4 w-4" />
-                        Editar
-                    </Button>
-                </DialogFooter>
+                {!isStandardUser && (
+                  <DialogFooter className="border-t pt-4 flex-wrap justify-start gap-2">
+                      <Button variant="secondary" onClick={handleOpenHistoryDialog}>
+                          <ClipboardPlus className="mr-2 h-4 w-4" />
+                          Añadir Historial
+                      </Button>
+                      <Button variant="secondary" onClick={handleOpenChangeOwnerDialog}>
+                          <Replace className="mr-2 h-4 w-4" />
+                          Cambiar Responsable
+                      </Button>
+                      <Button variant="outline" onClick={() => handleOpenEditDialog(selectedAsset)}>
+                          <Pencil className="mr-2 h-4 w-4" />
+                          Editar
+                      </Button>
+                  </DialogFooter>
+                )}
             </>
             )}
         </DialogContent>
@@ -1157,7 +1202,10 @@ function ActivosPageComponent() {
                     {selectedAsset && (
                         <AddHistoryForm 
                             assetId={selectedAsset.id} 
-                            onSaveSuccess={() => handleHistoryDialogChange(false)} 
+                            onSaveSuccess={() => {
+                                setIsHistoryDialogOpen(false);
+                                if (selectedAsset) setIsDetailDialogOpen(true);
+                            }}
                         />
                     )}
                 </div>
@@ -1236,3 +1284,5 @@ export default function ActivosPage() {
     );
 }
 
+
+    

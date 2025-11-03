@@ -29,6 +29,30 @@ import { Box, Loader2, X } from 'lucide-react';
 import RegisterForm from '@/components/auth/register-form';
 import { companies } from '@/lib/mock-data';
 
+const users = {
+    '94432420': {
+        password: 'wpq12345',
+        name: 'Whashintong Palma',
+        role: 'admin',
+        idNumber: '94432420',
+        email: 'fminformaticaytecnologia@gmail.com',
+    },
+    '1144172797': {
+        password: '1144172797',
+        name: 'William Aguilera',
+        role: 'tecnico',
+        idNumber: '1144172797',
+        email: 'sistemas@wfm.com'
+    },
+    '123456789': {
+        password: '123456789',
+        name: 'Usuario Estándar',
+        role: 'estandar',
+        idNumber: '123456789',
+        email: 'estandar@user.com'
+    }
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
@@ -44,12 +68,17 @@ export default function LoginPage() {
     setIsLoading(true);
 
     setTimeout(() => {
-      if (username === '94432420' && password === 'wpq12345') {
+      const user = (users as Record<string, any>)[username];
+      if (user && user.password === password) {
         toast({
           title: 'Inicio de Sesión Exitoso',
-          description: 'Bienvenido, Whashintong Palma.',
+          description: `Bienvenido, ${user.name}.`,
         });
         localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('userRole', user.role);
+        localStorage.setItem('userName', user.name);
+        localStorage.setItem('userIdNumber', user.idNumber);
+        localStorage.setItem('userEmail', user.email);
         router.replace('/');
       } else {
         toast({
@@ -185,3 +214,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+    

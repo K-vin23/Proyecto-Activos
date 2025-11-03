@@ -27,18 +27,46 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { usePathname } from 'next/navigation';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useEffect, useState } from 'react';
 
 const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
   const pathname = usePathname();
   const router = useRouter();
   const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar');
+  const [userName, setUserName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    setUserName(localStorage.getItem('userName') || '');
+    setUserEmail(localStorage.getItem('userEmail') || '');
+    setUserRole(localStorage.getItem('userRole') || null);
+  }, []);
+
+  const getInitials = (name: string) => {
+    if (!name) return '';
+    const names = name.split(' ');
+    if (names.length > 1) {
+        return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  }
+
 
   const isActive = (path: string) => pathname === path;
 
   const handleLogout = () => {
     localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userIdNumber');
+    localStorage.removeItem('userEmail');
     router.replace('/login');
   };
+
+  const canViewEmpresas = userRole === 'admin';
+  const canViewUsers = userRole === 'admin' || userRole === 'tecnico';
+  const canViewReports = userRole === 'admin' || userRole === 'tecnico';
 
   return (
     <SidebarProvider>
@@ -62,22 +90,26 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive('/empresas')} tooltip="Empresas">
-                  <Link href="/empresas">
-                    <Building />
-                    <span>Empresas</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive('/users')} tooltip="Usuarios">
-                  <Link href="/users">
-                    <Users />
-                    <span>Usuarios</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {canViewEmpresas && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive('/empresas')} tooltip="Empresas">
+                    <Link href="/empresas">
+                      <Building />
+                      <span>Empresas</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+              {canViewUsers && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive('/users')} tooltip="Usuarios">
+                    <Link href="/users">
+                      <Users />
+                      <span>Usuarios</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive('/assets')} tooltip="Activos">
                   <Link href="/assets">
@@ -91,14 +123,14 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
           <SidebarFooter>
             <div className="flex items-center gap-3 p-2">
               <Avatar className="h-10 w-10">
-                <AvatarFallback>WP</AvatarFallback>
+                <AvatarFallback>{getInitials(userName)}</AvatarFallback>
               </Avatar>
               <div className="flex flex-col overflow-hidden">
                 <span className="text-sm font-semibold text-sidebar-foreground truncate">
-                  Whashintong Palma
+                  {userName}
                 </span>
                 <span className="text-xs text-sidebar-foreground/70 truncate">
-                  fminformaticaytecnologia@gmail.com
+                  {userEmail}
                 </span>
               </div>
             </div>
@@ -119,3 +151,5 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
 };
 
 export default DashboardLayout;
+
+    
