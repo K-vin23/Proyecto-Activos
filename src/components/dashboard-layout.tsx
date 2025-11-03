@@ -22,7 +22,6 @@ import {
   LogOut,
   Box,
   Building,
-  FileText,
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { usePathname } from 'next/navigation';
@@ -68,6 +67,8 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
 
   const canViewEmpresas = userRole === 'admin';
   const canViewUsers = userRole === 'admin' || userRole === 'tecnico';
+  const canViewDashboard = userRole !== 'estandar';
+
 
   return (
     <SidebarProvider>
@@ -83,14 +84,16 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
           </SidebarHeader>
           <SidebarContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive('/') || isActive('/dashboard')} tooltip="Inicio">
-                  <Link href="/">
-                    <LayoutDashboard />
-                    <span>Inicio</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {canViewDashboard && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive('/') || isActive('/dashboard')} tooltip="Inicio">
+                    <Link href="/">
+                      <LayoutDashboard />
+                      <span>Inicio</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
               {canViewEmpresas && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={isActive('/empresas')} tooltip="Empresas">
@@ -116,14 +119,6 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
                   <Link href="/assets">
                     <Archive />
                     <span>Activos</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive('/reports')} tooltip="Reportes">
-                  <Link href="/reports">
-                    <FileText />
-                    <span>Reportes</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

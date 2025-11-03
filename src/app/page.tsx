@@ -11,11 +11,15 @@ export default function HomePage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
-    // En una aplicación real, esto implicaría una llamada a un backend
-    // o la validación de un token. Aquí, solo verificamos el localStorage.
     const loggedIn = localStorage.getItem('isAuthenticated');
+    const userRole = localStorage.getItem('userRole');
+
     if (loggedIn === 'true') {
-      setIsAuthenticated(true);
+      if (userRole === 'estandar') {
+        router.replace('/assets');
+      } else {
+        setIsAuthenticated(true);
+      }
     } else {
       router.replace('/login');
     }
