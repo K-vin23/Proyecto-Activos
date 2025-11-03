@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -108,6 +109,7 @@ type AnyAssetSchema = ComputerAssetSchema | SimpleAssetSchema;
 
 
 const addHistorySchema = z.object({
+    author: z.string().min(1, 'El técnico es requerido.'),
     description: z.string().min(1, 'La descripción es requerida.'),
     type: z.enum(['Mantenimiento', 'Incidente'], {
         required_error: 'Debes seleccionar un tipo de registro.',
@@ -121,10 +123,13 @@ function AddHistoryForm({ assetId, onSaveSuccess }: { assetId: string, onSaveSuc
     const form = useForm<AddHistorySchema>({
         resolver: zodResolver(addHistorySchema),
         defaultValues: {
+            author: '',
             description: '',
             type: 'Incidente',
         },
     });
+    
+    const technicians = users.filter(u => ['William Aguilera', 'Dylam Moralez', 'Carlos Fierro'].includes(u.name));
 
     function onSubmit(data: AddHistorySchema) {
         try {
@@ -148,6 +153,28 @@ function AddHistoryForm({ assetId, onSaveSuccess }: { assetId: string, onSaveSuc
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <FormField
+                    control={form.control}
+                    name="author"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Técnico Responsable</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Selecciona un técnico" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                {technicians.map(tech => (
+                                    <SelectItem key={tech.id} value={tech.name}>{tech.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
                 <FormField
                     control={form.control}
                     name="type"
@@ -279,7 +306,7 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
 
   return (
     <>
-        {onBack && (
+        {(onBack || isEditMode) && (
             <Button variant="ghost" onClick={onBack} className="absolute left-4 top-4">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Volver
@@ -708,10 +735,6 @@ function ActivosPageComponent() {
   const handleDetailDialogChange = (open: boolean) => {
     if (!open) {
         setSelectedAsset(null);
-        // Ensure other dialogs close when the main detail dialog closes
-        setIsHistoryDialogOpen(false);
-        setIsChangeOwnerOpen(false);
-        setIsEditDialogOpen(false);
     }
     setIsDetailDialogOpen(open);
   };
@@ -1212,3 +1235,4 @@ export default function ActivosPage() {
         </React.Suspense>
     );
 }
+
