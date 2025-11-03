@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -32,9 +32,30 @@ export default function Header() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+  const [initials, setInitials] = useState('');
+  const [userName, setUserName] = useState('');
+
+  useEffect(() => {
+    const name = localStorage.getItem('userName') || '';
+    setUserName(name);
+    if (name) {
+      const names = name.split(' ');
+      if (names.length > 1) {
+        setInitials(`${names[0][0]}${names[names.length - 1][0]}`);
+      } else if (names.length === 1 && names[0].length > 0) {
+        setInitials(names[0].substring(0, 2));
+      } else {
+        setInitials('');
+      }
+    }
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userIdNumber');
+    localStorage.removeItem('userEmail');
     router.replace('/login');
     toast({
       title: 'Sesión Cerrada',
@@ -64,13 +85,13 @@ export default function Header() {
           <DropdownMenuTrigger asChild>
             <Button variant="secondary" size="icon" className="rounded-full">
               <Avatar className="h-8 w-8">
-                <AvatarFallback>WP</AvatarFallback>
+                <AvatarFallback>{initials.toUpperCase()}</AvatarFallback>
               </Avatar>
               <span className="sr-only">Toggle user menu</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
+            <DropdownMenuLabel>{userName}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DialogTrigger asChild>
               <DropdownMenuItem onSelect={(e) => e.preventDefault()}>

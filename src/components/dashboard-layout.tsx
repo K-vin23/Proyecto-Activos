@@ -24,34 +24,36 @@ import {
   Building,
   FileText,
 } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { usePathname } from 'next/navigation';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useEffect, useState } from 'react';
 
 const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
   const pathname = usePathname();
   const router = useRouter();
-  const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar');
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [initials, setInitials] = useState('');
 
   useEffect(() => {
-    setUserName(localStorage.getItem('userName') || '');
+    const name = localStorage.getItem('userName') || '';
+    setUserName(name);
     setUserEmail(localStorage.getItem('userEmail') || '');
     setUserRole(localStorage.getItem('userRole') || null);
-  }, []);
-
-  const getInitials = (name: string) => {
-    if (!name) return '';
-    const names = name.split(' ');
-    if (names.length > 1) {
-        return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
+    
+    if (name) {
+      const names = name.split(' ');
+      if (names.length > 1) {
+        setInitials(`${names[0][0]}${names[names.length - 1][0]}`);
+      } else if (names.length === 1 && names[0].length > 0) {
+        setInitials(name.substring(0, 2));
+      } else {
+        setInitials('');
+      }
     }
-    return name.substring(0, 2).toUpperCase();
-  }
 
+  }, []);
 
   const isActive = (path: string) => pathname === path;
 
@@ -66,7 +68,6 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
 
   const canViewEmpresas = userRole === 'admin';
   const canViewUsers = userRole === 'admin' || userRole === 'tecnico';
-  const canViewReports = userRole === 'admin' || userRole === 'tecnico';
 
   return (
     <SidebarProvider>
@@ -83,7 +84,7 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
           <SidebarContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive('/')} tooltip="Inicio">
+                <SidebarMenuButton asChild isActive={isActive('/') || isActive('/dashboard')} tooltip="Inicio">
                   <Link href="/">
                     <LayoutDashboard />
                     <span>Inicio</span>
@@ -118,12 +119,20 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+               <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive('/reports')} tooltip="Reportes">
+                  <Link href="/reports">
+                    <FileText />
+                    <span>Reportes</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter>
             <div className="flex items-center gap-3 p-2">
               <Avatar className="h-10 w-10">
-                <AvatarFallback>{getInitials(userName)}</AvatarFallback>
+                <AvatarFallback>{initials.toUpperCase()}</AvatarFallback>
               </Avatar>
               <div className="flex flex-col overflow-hidden">
                 <span className="text-sm font-semibold text-sidebar-foreground truncate">
@@ -151,5 +160,3 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
 };
 
 export default DashboardLayout;
-
-    

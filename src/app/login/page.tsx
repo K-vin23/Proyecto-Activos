@@ -46,7 +46,7 @@ const users = {
     },
     '123456789': {
         password: '123456789',
-        name: 'Usuario Estándar',
+        name: 'Daniela Manyoma',
         role: 'estandar',
         idNumber: '123456789',
         email: 'estandar@user.com'
@@ -214,5 +214,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-    
