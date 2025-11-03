@@ -28,7 +28,7 @@ const onRegister = (data: RegisterSchema) => {
 interface RegisterFormProps {
     onRegisterSuccess?: () => void;
     companies: { id: number; name: string }[];
-    userToEdit?: Partial<RegisterSchema> & { idNumber?: string, email?: string };
+    userToEdit?: Partial<RegisterSchema> & { idNumber?: string, email?: string, role?: string };
 }
 
 export default function RegisterForm({ onRegisterSuccess, companies, userToEdit }: RegisterFormProps) {
@@ -52,6 +52,7 @@ export default function RegisterForm({ onRegisterSuccess, companies, userToEdit 
       department: "",
       email: "",
       password: "",
+      role: 'Estandar',
     },
   });
 
@@ -87,28 +88,53 @@ export default function RegisterForm({ onRegisterSuccess, companies, userToEdit 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="px-6 pb-6 space-y-4">
-        <FormField
-            control={form.control}
-            name="company"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Empresa a la que pertenece</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                    <SelectTrigger>
-                        <SelectValue placeholder="Selecciona una empresa" />
-                    </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                        {companies.map(company => (
-                            <SelectItem key={company.id} value={company.name}>{company.name}</SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-                <FormMessage />
-                </FormItem>
-            )}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+                control={form.control}
+                name="company"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Empresa a la que pertenece</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Selecciona una empresa" />
+                        </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            {companies.map(company => (
+                                <SelectItem key={company.id} value={company.name}>{company.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                    </FormItem>
+                )}
+            />
+             <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Rol</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Selecciona un rol" />
+                        </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            <SelectItem value="Admin">Admin</SelectItem>
+                            <SelectItem value="Tecnico">Técnico</SelectItem>
+                            <SelectItem value="Estandar">Estándar</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                    </FormItem>
+                )}
+            />
+        </div>
+
 
         <Separator />
         

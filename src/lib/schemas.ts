@@ -14,7 +14,9 @@ export const registerSchema = z.object({
     email: z.string().email({ message: "Por favor, introduce un correo electrónico válido." }),
     password: z.string()
         .min(8, { message: "La contraseña debe tener al menos 8 caracteres." })
-        .regex(/.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+.*/, { message: "La contraseña debe contener al menos un carácter especial." }),
+        .regex(/.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+.*/, { message: "La contraseña debe contener al menos un carácter especial." })
+        .optional(),
+    role: z.enum(['Admin', 'Tecnico', 'Estandar'], { required_error: 'El rol es requerido.' }),
 });
 
 export type RegisterSchema = z.infer<typeof registerSchema>;

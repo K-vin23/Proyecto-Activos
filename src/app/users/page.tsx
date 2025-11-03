@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -38,6 +39,76 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 const initialUsers = [
   {
     id: 1,
+    name: 'Whashintong Palma',
+    email: 'fminformaticaytecnologia@gmail.com',
+    role: 'Admin',
+    status: 'Active',
+    company: 'WFM',
+    idNumber: '94432420',
+    firstName: 'Whashintong',
+    lastName: 'Palma',
+    city: 'Cali',
+    location: 'Sede Principal',
+    department: 'Tecnología',
+  },
+  {
+    id: 2,
+    name: 'William Aguilera',
+    email: 'sistemas@wfm.com',
+    role: 'Tecnico',
+    status: 'Active',
+    company: 'WFM',
+    idNumber: '1144172797',
+    firstName: 'William',
+    lastName: 'Aguilera',
+    city: 'Cali',
+    location: 'Sede Principal',
+    department: 'Tecnología',
+  },
+  {
+    id: 3,
+    name: 'Dylam Moralez',
+    email: 'sistemas@wfm.com',
+    role: 'Tecnico',
+    status: 'Active',
+    company: 'WFM',
+    idNumber: '555555555',
+    firstName: 'Dylam',
+    lastName: 'Moralez',
+    city: 'Cali',
+    location: 'Planta',
+    department: 'Operaciones',
+  },
+  {
+    id: 4,
+    name: 'Carlos Fierro',
+    email: 'sistemas@wfm.com',
+    role: 'Tecnico',
+    status: 'Active',
+    company: 'WFM',
+    idNumber: '666666666',
+    firstName: 'Carlos',
+    lastName: 'Fierro',
+    city: 'Bogota',
+    location: 'Oficina Central',
+    department: 'Ventas',
+  },
+  {
+    id: 5,
+    name: 'Daniela Manyoma',
+    email: 'estandar@user.com',
+    role: 'Estandar',
+    status: 'Active',
+    company: 'HYCO',
+    idNumber: '123456789',
+    firstName: 'Daniela',
+    lastName: 'Manyoma',
+    city: 'Cali',
+    location: 'Oficina',
+    department: 'Contabilidad',
+  },
+  {
+    id: 6,
     name: 'Johana Fuentes',
     email: 'J_fuentes@pallomaro.com',
     role: 'Admin',
@@ -51,7 +122,7 @@ const initialUsers = [
     department: 'Tecnología',
   },
   {
-    id: 2,
+    id: 7,
     name: 'Claudia Moreno',
     email: 'C_moreno@hyco.co.com',
     role: 'Admin',
@@ -65,7 +136,7 @@ const initialUsers = [
     department: 'Gerencia',
   },
   {
-    id: 3,
+    id: 8,
     name: 'Wilson Rojas',
     email: 'Wilson_r@fundimetal.com',
     role: 'Admin',
@@ -77,48 +148,6 @@ const initialUsers = [
     city: 'Cali',
     location: 'Planta',
     department: 'Operaciones',
-  },
-  {
-    id: 4,
-    name: 'William Aguilera',
-    email: 'sistemas@wfm.com',
-    role: 'Admin',
-    status: 'Active',
-    company: 'WFM',
-    idNumber: '444444444',
-    firstName: 'William',
-    lastName: 'Aguilera',
-    city: 'Cali',
-    location: 'Sede Principal',
-    department: 'Tecnología',
-  },
-  {
-    id: 5,
-    name: 'Dylam Moralez',
-    email: 'sistemas@wfm.com',
-    role: 'Admin',
-    status: 'Active',
-    company: 'WFM',
-    idNumber: '555555555',
-    firstName: 'Dylam',
-    lastName: 'Moralez',
-    city: 'Cali',
-    location: 'Planta',
-    department: 'Operaciones',
-  },
-  {
-    id: 6,
-    name: 'Carlos Fierro',
-    email: 'sistemas@wfm.com',
-    role: 'Admin',
-    status: 'Active',
-    company: 'WFM',
-    idNumber: '666666666',
-    firstName: 'Carlos',
-    lastName: 'Fierro',
-    city: 'Bogota',
-    location: 'Oficina Central',
-    department: 'Ventas',
   },
 ];
 
@@ -213,6 +242,19 @@ export default function UsersPage() {
     });
   }, [searchTerm, users, advancedFilters]);
 
+  const getRoleBadgeVariant = (role: string) => {
+    switch (role) {
+      case 'Admin':
+        return 'default';
+      case 'Tecnico':
+        return 'secondary';
+      case 'Estandar':
+        return 'outline';
+      default:
+        return 'default';
+    }
+  }
+
   return (
     <DashboardLayout>
       <div className="flex flex-col h-full min-w-[800px]">
@@ -279,7 +321,9 @@ export default function UsersPage() {
                                             <SelectValue placeholder="Rol" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                             <SelectItem value="Admin">Admin</SelectItem>
+                                            <SelectItem value="Admin">Admin</SelectItem>
+                                            <SelectItem value="Tecnico">Técnico</SelectItem>
+                                            <SelectItem value="Estandar">Estándar</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     <Select value={advancedFilters.status} onValueChange={(value) => handleAdvancedFilterChange('status', value)}>
@@ -327,7 +371,9 @@ export default function UsersPage() {
                           </div>
                         </TableCell>
                         <TableCell>{user.company}</TableCell>
-                        <TableCell>{user.role}</TableCell>
+                        <TableCell>
+                            <Badge variant={getRoleBadgeVariant(user.role)}>{user.role}</Badge>
+                        </TableCell>
                         <TableCell>
                           <Badge variant={user.status === 'Active' ? 'default' : 'destructive'}>
                             {user.status}
