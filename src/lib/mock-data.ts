@@ -104,6 +104,9 @@ export const assetHistory = {
     ],
     'LAP-002': [
         { id: '6', date: '2024-02-25', author: 'Almacén', type: 'Mantenimiento', description: 'Mantenimiento preventivo general.' },
+    ],
+    'LAP-003': [
+        { id: '7', date: '2024-06-01', author: 'William Aguilera', type: 'Instalación', description: 'Configuración inicial de equipo y software base.' },
     ]
 };
 
