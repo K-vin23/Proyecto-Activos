@@ -59,7 +59,6 @@ export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [isForgotOpen, setIsForgotOpen] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
 
@@ -190,25 +189,6 @@ export default function LoginPage() {
           </form>
         </CardContent>
         <CardFooter className="flex flex-col items-center justify-center text-sm">
-            <p className="text-muted-foreground">¿No tienes una cuenta?</p>
-             <Dialog open={isRegisterOpen} onOpenChange={setIsRegisterOpen}>
-                <DialogTrigger asChild>
-                    <Button variant="link">Regístrate</Button>
-                </DialogTrigger>
-                <DialogContent className="w-[90vw] max-w-[90vw] md:w-full md:max-w-3xl rounded-lg max-h-[90vh] overflow-y-auto">
-                    <DialogHeader className="p-6 pb-0">
-                        <DialogTitle className="text-2xl font-headline text-center">Crear una cuenta</DialogTitle>
-                        <DialogDescription className="text-center">
-                            Introduce los datos para registrar un nuevo usuario en el sistema.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <RegisterForm onRegisterSuccess={() => setIsRegisterOpen(false)} companies={companies} />
-                    <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-                        <X className="h-4 w-4" />
-                        <span className="sr-only">Close</span>
-                    </DialogClose>
-                </DialogContent>
-            </Dialog>
         </CardFooter>
       </Card>
     </div>
