@@ -17,6 +17,6 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KAICERPIRATA_PROYECTO_ACTIVOS }}
           channelId: live
-          projectId: YOUR_PROJECT_ID # <-- IMPORTANT: Replace with your Firebase project ID
+          projectId: 1:830702974119:web:6b47b016ae7f05dca79782 # <-- MUY IMPORTANTE: Es probable que este no sea el ID de proyecto correcto. Verifícalo en la consola de Firebase.
         env:
           FIREBASE_CLI_EXPERIMENTS: webframeworks
