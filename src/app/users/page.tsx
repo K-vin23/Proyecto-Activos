@@ -1,6 +1,6 @@
 'use client';
 
-import { usersService } from '@/services/users.service';
+import { usersService } from '@/services/user/users.service';
 import { use, useEffect, useReducer } from 'react';
 
 import { useState, useMemo } from 'react';

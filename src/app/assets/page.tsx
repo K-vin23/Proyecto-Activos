@@ -1,7 +1,7 @@
-
 'use client';
 
 import * as React from 'react';
+import { getSession } from '@/lib/session';
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -62,48 +62,48 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { computerService } from '@/services/computer.service';
 import { FormUser } from '@/types/user.types';
-import { usersService } from '@/services/users.service';
-import { catalogService } from '@/services/catalog.service';
-import { mapAssetToFormValues, mapFormToComputer } from '@/lib/mappers/computer.mapper';
+import { usersService } from '@/services/user/users.service';
+import { catalogService } from '@/services/asset/catalog.service';
+import { mapAssetToFormValues, mapRequestToComputer } from '@/lib/mappers/asset.mapper';
 import { useCatalogs } from '@/hooks/useCatalogs';
 import { useCompanies } from '@/hooks/useCompanies';
 import { useAreas } from '@/hooks/useAreas';
 import { useUserSearch } from '@/hooks/useUsers';
-import { assetService } from '@/services/assets.service';
+import { assetService } from '@/services/asset/assets.service';
 import { AssetList, DetailedAsset, RemovedList } from '@/types/asset.type';
-import { maintenanceService } from '@/services/maintenances.service';
-// import { MaintenanceList } from '@/types/maintenance.type';
-
+import { maintenanceService } from '@/services/maintenance/maintenances.service';
+import { Model } from '@/types/catalog.type';
+//================= FORM SCHEMAS =================
 const computerAssetSchema = z.object({
-  id: z.string().min(1, 'El nombre del activo es requerido.'),
+  internalId: z.string().min(1, 'El identificador del activo es requerido.').max(100, 'El identificador no puede ser mayor a 100 caracteres'),
   responsable: z.number().optional(),
-  serialNumber: z.string().min(1, 'El número de serie es requerido.'),
-  invoiceNumber: z.string().optional(),
+  serialNumber: z.string().min(1, 'El número de serie es requerido.').max(100, 'El número de serie no puede ser mayor a 100 caracteres'),
+  invoice: z.string().max(50, 'La factura no puede superar los 50 caracteres').optional(),
   purchaseDate: z.date({ required_error: 'La fecha de compra es requerida.' }),
   companyId: z.number({ required_error: 'La empresa es requerida.' }),
   areaId: z.number({ required_error: 'El area es requerida.' }),
   categoryId: z.enum(['LAP', 'SFF', 'TORR']),
   modelId: z.number({ required_error: 'El modelo es requerido.'}),
-  networkName: z.string().optional(),
+  networkName: z.string().max(50, 'El nombre en red no puede superar los 50 caracteres').optional(),
   ram: z.array(z.number().optional()).min(1).max(3),
   storage: z.array(z.number().optional()).min(1).max(3),
   osLicenseId: z.number({ required_error: 'La licencia de windows es requerida.'}),
-  osKey: z.string().optional(),
+  osKey: z.string().max(120, 'La llave del sistema operativo no puede superar los 120 caracteres').optional(),
   officeLicenseId: z.number({ required_error: 'La licencia de office es requerida.'}),
-  officeKey: z.string().optional(),
+  officeKey: z.string().max(120, 'La llave del office suite no puede superar los 120 caracteres').optional(),
 });
 
 const simpleAssetSchema = z.object({
-    id: z.string().min(1, 'El nombre del activo es requerido.'),
+    internalId: z.string().min(1, 'El identificador del activo es requerido.').max(100, 'El identificador no puede ser mayor a 100 caracteres'),
     responsable: z.number().optional(),
-    serialNumber: z.string().min(1, 'El número de serie es requerido.'),
-    invoiceNumber: z.string().optional(),
+    serialNumber: z.string().min(1, 'El número de serie es requerido.').max(100, 'El número de serie no puede ser mayor a 100 caracteres'),
+    invoice: z.string().max(50, 'La factura no puede superar los 50 caracteres').optional(),
     purchaseDate: z.date({ required_error: 'La fecha de compra es requerida.' }),
     companyId: z.number({ required_error: 'La empresa es requerida.' }),
     areaId: z.number({ required_error: 'El area es requerida.' }),
     categoryId: z.enum(['MON', 'UPS']),
     modelId: z.number({ required_error: 'El modelo es requerido.'}),
-    details: z.string().optional(),
+    details: z.string().max(100, 'Los detalles del activo no puede superar los 50 caracteres').optional(),
 });
 
 const assetSchema = z.discriminatedUnion(
@@ -127,7 +127,9 @@ const addHistorySchema = z.object({
 });
 
 type AddHistorySchema = z.infer<typeof addHistorySchema>;
+//================= END FORM SCHEMAS =================
 
+//================= HISTORY FORM =================
 function AddHistoryForm({ assetId, onSaveSuccess, technicians }: { assetId: number, onSaveSuccess: () => void, technicians: FormUser[] }) {
     const { toast } = useToast();    
     const form = useForm<AddHistorySchema>({
@@ -247,12 +249,12 @@ function AddHistoryForm({ assetId, onSaveSuccess, technicians }: { assetId: numb
     );
 }
 
-// FORMULARIO ACTIVOS
-function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetType: 'LAP' | 'SFF' | 'TORR' | 'MON' | 'UPS', onSaveSuccess?: () => void, onBack?: () => void, assetToEdit?: any | null }) {
+// ================= ASSET FORM =================
+function AssetForm({ typeId, onSaveSuccess, onBack, assetToEdit }: { typeId: 'LAP' | 'SFF' | 'TORR' | 'MON' | 'UPS', onSaveSuccess?: () => void, onBack?: () => void, assetToEdit?: DetailedAsset | null }) {
   const { toast } = useToast();
   const isEditMode = !!assetToEdit;
   const [catalogQuery, setCatalogQuery] = useState('');
-  const [catalogResults, setCatalogResults] = useState<any[]>([]);
+  const [catalogResults, setCatalogResults] = useState<Model[]>([]);
   const [isSelecting, setIsSelecting] = useState(false);
   const { memories, disks, licenses } = useCatalogs();
   const { companies, companiesLoading } = useCompanies();
@@ -265,20 +267,20 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
     clearResults
   } = useUserSearch();
   
-  const isComputer = ['LAP','SFF','TORR'].includes(assetType);
+  const isComputer = ['LAP','SFF','TORR'].includes(typeId);
 
   const schema = isComputer ? computerAssetSchema : simpleAssetSchema;
 
   const defaultValues: AssetFormData = 
     isComputer ? {
-        id: '', 
+        internalId: '', 
         responsable: undefined, 
         serialNumber: '', 
-        invoiceNumber: '', 
+        invoice: '', 
         purchaseDate: new Date(),
         companyId: undefined as any, 
         areaId: undefined as any, 
-        categoryId: assetType as 'LAP' | 'SFF' | 'TORR', 
+        categoryId: typeId as 'LAP' | 'SFF' | 'TORR', 
         modelId: undefined as any, 
         networkName: 'SIN NOMBRE', 
         ram: [undefined], 
@@ -289,14 +291,14 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
         officeKey: ''
     } : 
     {
-        id: '', 
+        internalId: '', 
         responsable: undefined, 
         serialNumber: '', 
-        invoiceNumber: '',
+        invoice: '',
         purchaseDate: new Date(),  
         companyId: undefined as any, 
         areaId: undefined as any, 
-        categoryId: assetType as 'MON' | 'UPS', 
+        categoryId: typeId as 'MON' | 'UPS', 
         modelId: undefined as any, 
         details: ''
     };
@@ -316,6 +318,7 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
   useEffect(() => {
     if (isEditMode && assetToEdit && companies.length > 0 && areas.length > 0) {
       form.reset(mapAssetToFormValues(assetToEdit));
+      console.log(assetToEdit.invoice);
 
       setIsSelecting(true);
       setCatalogQuery(
@@ -326,18 +329,19 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
   }, [isEditMode, assetToEdit, companies, areas]);
 
 
-// catalog computer models search
+// Catalog models search
   useEffect(() => { 
     if (isSelecting) return; 
 
     const fetchCatalog = async () => {
-      if (catalogQuery.length < 2) {
+      if (catalogQuery.length < 1) {
         setCatalogResults([]);
         return;
       }
 
       try {
         const res = await catalogService.search(catalogQuery);
+        console.log(res.data);
         setCatalogResults(res.data); 
       } catch (e) {
         console.error(e);
@@ -363,26 +367,30 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
  const osLicenses = licenses.filter(l => l.softwareType === "SO");
 
  function isComputerAsset(
-  data: AssetFormData
-): data is ComputerForm {
-  return ['LAP', 'SFF', 'TORR'].includes(data.categoryId);
-}
+    data: AssetFormData
+ ): data is ComputerForm {
+    return ['LAP', 'SFF', 'TORR'].includes(data.categoryId);
+ }
 
   async function onSubmit(data: z.infer<typeof schema>) {
     try {
+        // --Transform
         let cleanData: AssetFormData = data;
-
+        let payload;
         if (isComputerAsset(data)) {
             cleanData = {
                 ...data,
                 ram: data.ram?.filter(Boolean),
                 storage: data.storage?.filter(Boolean),
             };
-        }
-        const payload = mapFormToComputer(cleanData);
-        let display = '';
 
-        switch (assetType) {
+            payload = mapRequestToComputer(cleanData);
+        }else {
+            payload = cleanData;
+        }
+
+        let display = '';
+        switch (typeId) {
             case 'LAP':
                 display = 'La laptop';
                 break;
@@ -404,7 +412,7 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
         }
 
       if (isEditMode) {
-
+        // console.log("DATA TO SEND:", JSON.stringify(payload, null, 2));
         await assetService.update(assetToEdit.assetId, payload);
 
         toast({
@@ -412,13 +420,8 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
           description: `${display} ha sido actualizado correctamente.`,
         });
       } else {        
-        const payload = mapFormToComputer(cleanData);
-
-        // console.log(JSON.stringify(payload, null, 2));
-        
+        console.log('DATA TO SEND:', JSON.stringify(payload, null, 2)); 
         await assetService.create(payload);
-
-        // console.log('Asset data submitted:', { payload });
         toast({
           title: 'Registro Exitoso',
           description: `${display} ha sido registrado correctamente.`,
@@ -429,7 +432,7 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
       if (onSaveSuccess) {
         onSaveSuccess();
       }
-    } catch (error) {
+    }catch (error) {
       console.error('Error during operation:', error);
       toast({
         variant: 'destructive',
@@ -440,7 +443,7 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
   }
 
   const getPlaceholder = () => {
-    switch (assetType) {
+    switch (typeId) {
         case 'LAP':
             return 'LAPTOP-001';
         case 'SFF':
@@ -518,7 +521,7 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
                 {/* Common Fields */}
                 <FormField
                 control={form.control}
-                name="id"
+                name="internalId"
                 render={({ field }) => (
                     <FormItem>
                     <FormLabel>Activo / Nombre</FormLabel>
@@ -548,7 +551,7 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
                 {/* FACTURA */}
                 <FormField
                 control={form.control}
-                name="invoiceNumber"
+                name="invoice"
                 render={({ field }) => (
                     <FormItem>
                     <FormLabel>Factura (Opcional)</FormLabel>
@@ -578,7 +581,7 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
                             )}
                             >
                             {field.value ? (
-                                format(field.value, 'PPP')
+                                format(field.value, 'PP')
                             ) : (
                                 <span>Selecciona una fecha</span>
                             )}
@@ -589,7 +592,7 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
                         <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                             mode="single"
-                            selected={field.value as Date | undefined}
+                            selected={field.value ? new Date(field.value) : undefined}
                             onSelect={field.onChange}
                             disabled={(date) =>
                             date > new Date() || date < new Date('1900-01-01')
@@ -603,7 +606,7 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
                 )}
                 />
 
-                {/* CATALOGO MODELOS COMPUTADOR */}
+                {/* CATALOGO MODELOS ACTIVOS */}
                 <FormItem>
                     <FormLabel>Modelo de Equipo</FormLabel>
                         <FormControl>
@@ -618,28 +621,28 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
                     {/* RESULTADOS */}
                     {catalogResults.length > 0 && (
                     <div className="border rounded-md mt-2 max-h-40 overflow-y-auto">
-                        {catalogResults.map((item) => (
+                        {catalogResults.map((model) => (
                         <div
-                            key={item.modelId}
+                            key={model.modelId}
                             className="p-2 hover:bg-gray-100 cursor-pointer"
                             onClick={() => {
                                 setIsSelecting(true);
 
                                 // relleno automático
-                                form.setValue("modelId", item.modelId);
+                                form.setValue("modelId", model.modelId);
 
                                 setCatalogQuery(
-                                    `${item.computer_brand.brand} ${item.modelFamily} ${item.modelSerie}`
+                                    `${model.brand} ${model.model}`
                                 );
 
                                 setCatalogResults([]);
                             }}
                         >
                             <div className="font-medium">
-                                {item.computer_brand.brand} {item.modelFamily} {item.modelSerie}
+                                {model.brand} {model.model}
                             </div>
                             <div className="text-sm text-gray-500">
-                                {item.processor.processorModel}
+                                {model?.processor[0]?.name ?? ''}
                             </div>
                         </div>
                         ))}
@@ -648,50 +651,6 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
 
                     <FormMessage />
                 </FormItem>
-                
-                {/* Computer-specific fields */}
-                {isComputer && (
-                <>
-
-                <FormField
-                    control={form.control}
-                    name="networkName"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Nombre en Red (Opcional)</FormLabel>
-                        <FormControl>
-                            <Input placeholder="PC-VENTAS-01" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-
-                {/* TIPO DE EQUIPO */}
-                <FormField
-                control={form.control}
-                name="categoryId"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Tipo de Equipo</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value ?? undefined}>
-                        <FormControl>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Selecciona un tipo" />
-                        </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                        <SelectItem value="LAP">PORTATIL</SelectItem>
-                        <SelectItem value="SFF">Mini-PC</SelectItem>
-                        <SelectItem value="TORR">TORRE</SelectItem>
-                        {/* <SelectItem value="MON">MONITOR</SelectItem>
-                        <SelectItem value="UPS">UPS</SelectItem> */}
-                        </SelectContent>
-                    </Select>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
 
                 {/* EMPRESA */}
                 <FormField
@@ -738,6 +697,50 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
                                 {area.area}
                             </SelectItem>
                             ))}
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                
+                {/* Computer-specific fields */}
+                {isComputer && (
+                <>
+
+                <FormField
+                    control={form.control}
+                    name="networkName"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Nombre en Red (Opcional)</FormLabel>
+                        <FormControl>
+                            <Input placeholder="PC-VENTAS-01" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+
+                {/* TIPO DE EQUIPO */}
+                <FormField
+                control={form.control}
+                name="categoryId"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Tipo de Equipo</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value ?? undefined}>
+                        <FormControl>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Selecciona un tipo" />
+                        </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                        <SelectItem value="LAP">PORTATIL</SelectItem>
+                        <SelectItem value="SFF">Mini-PC</SelectItem>
+                        <SelectItem value="TORR">TORRE</SelectItem>
+                        {/* <SelectItem value="MON">MONITOR</SelectItem>
+                        <SelectItem value="UPS">UPS</SelectItem> */}
                         </SelectContent>
                     </Select>
                     <FormMessage />
@@ -1040,7 +1043,7 @@ function ActivosPageComponent() {
   const [selectedAssetType, setSelectedAssetType] = useState<'LAP' | 'SFF' | 'TORR' | 'MON' | 'UPS' | null>(null);
   const [removalReason, setRemovalReason] = useState('');
   //    Catalogs
-  const [userRole, setUserRole] = useState<string | null>(null);
+//   const [userRole, setUserRole] = useState<string | null>(null);
   const { companies, companiesLoading } = useCompanies();
   const { areas, areasLoading } = useAreas();
   const [technicians, setTechnicians] = useState<FormUser[]>([]);
@@ -1065,7 +1068,7 @@ function ActivosPageComponent() {
     total: 0,
   });
  //=================== FETCH FROM API ===================
- // Fetch assets
+  // Fetch assets
   const loadAssets = async () => {
     try {
         setIsLoading(true);
@@ -1089,7 +1092,7 @@ function ActivosPageComponent() {
         setIsLoading(false);
     }
   }
-
+  // Fecth inactive assets
   const loadRemovedAssets = async () => {
     try{
         setIsLoadingRemoved(true);
@@ -1107,24 +1110,6 @@ function ActivosPageComponent() {
         setIsLoadingRemoved(false);
     }
   }
-
-//   const loadRemovedComputers = async () => {
-//     try{
-//         setIsLoadingRemoved(true);
-
-//         const removed = await computerService.listRemoved();
-//         setRemovedAssets(removed.data);
-//     }catch (e) {
-//         console.error(e);
-//         toast({
-//             variant: 'destructive',
-//             title: 'Error',
-//             description: 'No se pudieron cargar los activos eliminados',
-//         });
-//     } finally {
-//         setIsLoadingRemoved(false);
-//     }
-//   }
 
   // Load assets
   useEffect(() => {   
@@ -1312,7 +1297,7 @@ function ActivosPageComponent() {
     UPS: 'UPS'
   } as const;
 
-  const isStandardUser = userRole === 'estandar';
+  const isStandardUser = getSession()?.user.rol === 'PER';
 
   // RAM
   const rams = selectedAsset?.ram?.map(ram => ram.name) ?? [];
@@ -1363,7 +1348,7 @@ function ActivosPageComponent() {
                           </DialogDescription>
                       </DialogHeader>
                       <AssetForm 
-                          assetType={selectedAssetType} 
+                          typeId={selectedAssetType} 
                           onSaveSuccess={handleSaveSuccess}
                           onBack={() => setSelectedAssetType(null)} 
                       />
@@ -1637,7 +1622,7 @@ function ActivosPageComponent() {
                 <DialogHeader>
                     <div className="flex items-center justify-between">
                         <div>
-                            <DialogTitle className="text-2xl font-headline">Detalles del Activo: {selectedAsset.id} {selectedAsset.model.model}</DialogTitle>
+                            <DialogTitle className="text-2xl font-headline">Detalles del Activo: {selectedAsset.internalId} {selectedAsset.model.model}</DialogTitle>
                             <DialogDescription>
                                 Información completa y registros de mantenimiento.
                             </DialogDescription>
@@ -1655,7 +1640,7 @@ function ActivosPageComponent() {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                                <div className="md:col-span-1"><span className="font-semibold">ID Activo: </span>{selectedAsset.id}</div>
+                                <div className="md:col-span-1"><span className="font-semibold">ID Activo: </span>{selectedAsset.internalId}</div>
                                 <div className="md:col-span-1"><span className="font-semibold">Categoría: </span>{selectedAsset.category}</div>
                                 <div className="md:col-span-1"><span className="font-semibold">Estado: </span>{selectedAsset.status}</div>
                                 <div className="md:col-span-1"><span className="font-semibold">Empresa: </span>{selectedAsset.company.company}</div>
@@ -1742,7 +1727,7 @@ function ActivosPageComponent() {
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-headline">Añadir Registro al Historial</DialogTitle>
                     <DialogDescription>
-                        Registra un nuevo mantenimiento o incidente para el activo {selectedAsset?.id}.
+                        Registra un nuevo mantenimiento o incidente para el activo {selectedAsset?.internalId}.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="py-4">
@@ -1767,7 +1752,7 @@ function ActivosPageComponent() {
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-headline">Cambiar Responsable</DialogTitle>
                     <DialogDescription>
-                        Selecciona el nuevo responsable para el activo {selectedAsset?.id}. 
+                        Selecciona el nuevo responsable para el activo {selectedAsset?.internalId}. 
                         El responsable actual es {selectedAsset?.responsable?.name ?? ''}.
                     </DialogDescription>
                 </DialogHeader>
@@ -1848,14 +1833,14 @@ function ActivosPageComponent() {
         <Dialog open={isEditDialogOpen} onOpenChange={handleEditDialogChange}>
             <DialogContent className="w-[90vw] max-w-[90vw] md:w-full md:max-w-4xl rounded-lg max-h-[90vh] overflow-y-auto p-0">
                 <DialogHeader className="pt-12 px-6">
-                    <DialogTitle className="text-2xl font-headline text-center">{assetToEdit ? `Editar Activo: ${assetToEdit.id} - ${assetToEdit.model.brand} ${assetToEdit.model.model}` : `Editar Activo`}</DialogTitle>
+                    <DialogTitle className="text-2xl font-headline text-center">{assetToEdit ? `Editar Activo: ${assetToEdit.internalId} - ${assetToEdit.model.brand} ${assetToEdit.model.model}` : `Editar Activo`}</DialogTitle>
                     <DialogDescription className="text-center">
                         Modifica los datos del activo. El responsable no se puede cambiar aquí.
                     </DialogDescription>
                 </DialogHeader>
                 {assetToEdit?.categoryId && (
                         <AssetForm 
-                            assetType={assetToEdit.categoryId} 
+                            typeId={assetToEdit.categoryId} 
                             onSaveSuccess={handleSaveSuccess}
                             assetToEdit={assetToEdit}
                             onBack={() => handleEditDialogChange(false)}

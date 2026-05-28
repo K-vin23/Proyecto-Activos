@@ -25,7 +25,7 @@ export type AssetCategory = | 'LAP'| 'SFF' | 'TORR' | 'MON' | 'UPS';
 
 export interface DetailedAsset {
     assetId: number,
-    id: string,
+    internalId: string,
     model: Model,
     area: Area,
     categoryId: AssetCategory,
@@ -37,10 +37,26 @@ export interface DetailedAsset {
     purchaseDate: Date,
     invoice: string,
     networkName?: string | null,
-    processor?: {id: number, name: string} | null,
+    processor?: Component | null,
     details?: string,
     ram?: Component[] | [],
     storage?: Component[] | [],
     osLicense?: License,
     officeLicense?: License
+}
+
+export interface ComputerRequest {
+    serialNumber: string, 
+    networkName: string, 
+    companyId: number, 
+    categoryId: string, 
+    invoice: string, 
+    purchaseDate: Date, 
+    internalId: string, 
+    areaId: number, 
+    modelId: number, 
+    responsable: number, 
+    memories: { id: number}[],
+    disks: { id: number}[],
+    licenses: { licenseId: number, licenseKey: string}[]
 }

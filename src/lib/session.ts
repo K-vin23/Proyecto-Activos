@@ -23,8 +23,8 @@ export function clearSession() {
 }
 
 export function getSession(): AuthResponse | null {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
+    const session = localStorage.getItem(STORAGE_KEY);
+    return session ? JSON.parse(session) : null;
 }
 
 export function getAuthToken(): string | null {
@@ -36,7 +36,6 @@ export function isAuthenticated(): boolean {
     const session = getSession();
     return !!session?.token;
 }
-
 
 export function getCurrentUser() {
     return getSession()?.user ?? null;

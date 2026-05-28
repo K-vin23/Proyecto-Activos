@@ -4,7 +4,7 @@
 // import { api } from '@/lib/api.client';
 import type { UpcomingMaintenance as ApiUpcomingMaintenance } from '@/types/dashboard.types';
 import type { DashboardResponse } from '@/types/dashboard.types';
-import { companiesService } from '@/services/companies.service';
+import { companiesService } from '@/services/company/companies.service';
 import type { Company } from '@/types/company.types';
 
 import { useState, useEffect } from 'react';

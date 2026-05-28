@@ -46,17 +46,17 @@ export interface ApiComputer {
     officeLicense: License
 }
 
-export interface formComputer {
-    serialNumber: string,
-    networkName: string,
-    companyId: number,
-    assetType: string,
-    invoice: string,
-    purchaseDate: string,
-    internalId: string,
-    areaId: number,
-    modelId: number,
-    assignedUser: number,
+export interface formComputer { //EL PTO CULPABLE DEL MAPPER
+    serialNumber: string, //
+    networkName: string, //
+    companyId: number, //
+    categoryId: string, //
+    invoice: string, //
+    purchaseDate: string, //
+    internalId: string, //
+    areaId: number, //
+    modelId: number, //
+    responsable: number,
     memories: { id: number}[],
     disks: { id: number}[],
     licenses: { licenseId: number, licenseKey: string}[]

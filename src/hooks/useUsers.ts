@@ -1,4 +1,4 @@
-import { usersService } from "@/services/users.service";
+import { usersService } from "@/services/user/users.service";
 import { FormUser } from "@/types/user.types";
 import { useEffect, useState } from "react";
 

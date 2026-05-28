@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { companiesService } from '@/services/companies.service';
+import { companiesService } from '@/services/company/companies.service';
 import { Company } from '@/types/company.types';
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';

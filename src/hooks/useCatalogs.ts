@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { catalogService } from "@/services/catalog.service";
+import { catalogService } from "@/services/asset/catalog.service";
 import { Component } from "@/types/catalog.type";
 
 export function useCatalogs() {

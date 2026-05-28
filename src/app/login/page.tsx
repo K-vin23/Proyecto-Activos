@@ -1,10 +1,7 @@
-
 'use client';
 
-// import { login } from '@/services/auth.service';
 import { saveSession } from '@/lib/session';
-import { usersService } from '@/services/users.service';
-
+import { usersService } from '@/services/user/users.service';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -31,15 +28,12 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Box, Loader2, X } from 'lucide-react';
 import RegisterForm from '@/components/auth/register-form';
-// import { companies } from '@/lib/mock-data';
 import { logUser } from '@/types/auth.types';
 
 
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
-  // const [userId, setUserId] = useState('');
-  // const [password, setPassword] = useState('');
   const [user, setUser] = useState<logUser>({
     cedula: '',
     password: ''
@@ -48,13 +42,13 @@ export default function LoginPage() {
   const [isForgotOpen, setIsForgotOpen] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
 
+  // Start session
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
       const response = await usersService.login(user);
-
       saveSession(response);
 
       toast({
@@ -74,6 +68,7 @@ export default function LoginPage() {
     }
   };
   
+  // Forgot Password?
   const handleForgotPassword = () => {
     if (forgotEmail) {
         console.log(`Password reset link sent to: ${forgotEmail}`)

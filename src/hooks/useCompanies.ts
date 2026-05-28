@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { companiesService } from "@/services/companies.service";
+import { companiesService } from "@/services/company/companies.service";
 import { Company } from "@/types/company.types";
 
 export function useCompanies() {

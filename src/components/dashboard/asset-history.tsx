@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 // import { assetHistory as allHistory } from "@/lib/mock-data";
 import { MaintenanceList } from "@/types/maintenance.type";
 import { useEffect, useState } from "react";
-import { maintenanceService } from "@/services/maintenances.service";
+import { maintenanceService } from "@/services/maintenance/maintenances.service";
 import { Button } from "../ui/button";
 
 

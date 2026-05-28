@@ -4,6 +4,14 @@ export interface License{
     softwareType: string,
 }
 
+export interface LicenseList {
+  licenseId: number;
+  providerId: number;
+  softwareType: "OFFI" | "SO";
+  software: string;
+  sofVersion: string;
+}
+
 export interface Component{
     id: number,
     name: string
@@ -19,5 +27,6 @@ export interface Component{
 export interface Model {
     modelId: number,
     brand: string,
-    model: string
+    model: string,
+    processor: Component[]
 }
