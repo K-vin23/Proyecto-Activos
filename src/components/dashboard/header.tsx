@@ -22,22 +22,24 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { SidebarTrigger } from '@/components/ui/sidebar';
+// import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { getSession } from '@/lib/session';
 import { AuthUser } from '@/types/auth.types';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 export default function Header() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [currentDate, setCurrentDate] = useState('');
 
   useEffect(() => {
-    // const name = localStorage.getItem('userName') || '';
     const session = getSession();
 
     if(!session) {
@@ -49,7 +51,16 @@ export default function Header() {
     setUser(session.user);
   }, []);
 
-    function nameInitials(name?: string) {
+  useEffect(() => {
+    setCurrentDate(
+      format(
+      new Date(),
+      "d 'de' MMMM 'a las' h:mm a",
+      { locale: es }
+    ));
+  })
+
+  function nameInitials(name?: string) {
       if(!name?.trim()) return "NA";
 
       const names = name.trim().split(" ");
@@ -62,11 +73,6 @@ export default function Header() {
   }
 
   const handleLogout = () => {
-    // localStorage.removeItem('isAuthenticated');
-    // localStorage.removeItem('userRole');
-    // localStorage.removeItem('userName');
-    // localStorage.removeItem('userIdNumber');
-    // localStorage.removeItem('userEmail');
     router.replace('/login');
     toast({
       title: 'Sesión Cerrada',
@@ -84,11 +90,17 @@ export default function Header() {
     setIsDialogOpen(false);
   };
 
+  const firstname = user?.name?.split(' ')[0] ?? '';
+
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-card px-4 sticky top-0 z-30 lg:h-[60px] lg:px-6">
-      {/* <SidebarTrigger className="md:hidden"/> */}
       <div className="w-full flex-1">
-        {/* Search bar removed as requested */}
+        <h2 className="text-lg font-semibold">
+          Bienvenido, {firstname}
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          {currentDate || 'cargando fecha..'}
+        </p>
       </div>
       
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -102,8 +114,8 @@ export default function Header() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>{user?.name}</DropdownMenuLabel>
-            <DropdownMenuSeparator />
+            {/* <DropdownMenuLabel>{user?.name}</DropdownMenuLabel>
+            <DropdownMenuSeparator /> */}
             <DialogTrigger asChild>
               <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                 Cambiar Clave

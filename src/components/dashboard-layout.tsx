@@ -133,7 +133,7 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
           <SidebarFooter>
             <div className="flex items-center gap-3 p-2">
               <Avatar className="h-10 w-10">
-                <AvatarFallback>{nameInitials(user?.name).toUpperCase()}</AvatarFallback>
+                <AvatarFallback className='text-black'>{nameInitials(user?.name).toUpperCase()}</AvatarFallback>
               </Avatar>
               <div className="flex flex-col overflow-hidden">
                 <span className="text-sm font-semibold text-sidebar-foreground truncate">

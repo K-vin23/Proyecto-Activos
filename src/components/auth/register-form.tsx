@@ -18,13 +18,13 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "../ui/separator";
-import { Company } from "@/types/company.types";
-import { City } from "@/types/city.type";
+// import { Company } from "@/types/company.types";
+// import { City } from "@/types/city.type";
 import { Location } from "@/types/location.type";
-import { Area } from "@/types/area.type";
+// import { Area } from "@/types/area.type";
 import { useEffect, useState } from "react";
-import { citiesService } from "@/services/cities.service";
-import { areasService } from "@/services/company/areas.service";
+// import { citiesService } from "@/services/cities.service";
+// import { areasService } from "@/services/company/areas.service";
 import { locationService } from "@/services/company/locations.service";
 import { useCompanies } from "@/hooks/useCompanies";
 import { useAreas } from "@/hooks/useAreas";
@@ -47,7 +47,6 @@ export default function RegisterForm({ onRegisterSuccess, userToEdit }: Register
   const { companies, companiesLoading } = useCompanies();
   const { areas, areasLoading } = useAreas();
   const { cities, citiesLoading} = useCities();
-//   const [cities, setCities] = useState<City[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
   const { toast } = useToast();
   const isEditMode = !!userToEdit;
@@ -335,7 +334,7 @@ export default function RegisterForm({ onRegisterSuccess, userToEdit }: Register
                 render={({ field }) => (
                     <FormItem>
                     <FormLabel>Ubicación</FormLabel>
-                    <Select value={field.value?.toString()} onValueChange={(value) => field.onChange(Number(value))}>
+                    <Select disabled={locations.length === 0} value={field.value?.toString()} onValueChange={(value) => field.onChange(Number(value))}>
                         <FormControl>
                         <SelectTrigger>
                             <SelectValue placeholder="Selecciona una ubicacion" />
@@ -346,6 +345,11 @@ export default function RegisterForm({ onRegisterSuccess, userToEdit }: Register
                                 <SelectItem key = {location.locationId} value={location.locationId.toString()}>{location.locationName}</SelectItem>
                             ))}
                         </SelectContent>
+                        {locations.length === 0 && (
+                            <p className="text-sm text-muted-foreground">
+                                Selecciona una empresa y una ciudad para cargar las ubicaciones.
+                            </p>
+                            )}
                     </Select>
                     <FormMessage />
                     </FormItem>

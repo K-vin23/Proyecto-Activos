@@ -16,7 +16,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { PlusCircle, X, Calendar as CalendarIcon, Trash2, RotateCcw, ArrowLeft, ArrowBigLeft, ArrowBigRight, Loader2, Monitor, Zap, Laptop, ClipboardPlus, Eye, Replace, Download, Search, Filter, Pencil } from 'lucide-react';
+import { PlusCircle, Calendar as CalendarIcon, Trash2, RotateCcw, ArrowLeft, ArrowBigLeft, ArrowBigRight, Loader2, Monitor, Zap, Laptop, ClipboardPlus, Eye, Replace, Download, Search, Filter, Pencil, CircleX } from 'lucide-react';
 import DashboardLayout from '@/components/dashboard-layout';
 import Header from '@/components/dashboard/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -1273,7 +1273,6 @@ function ActivosPageComponent() {
         console.log("no asset to delete");
         return
     };
-    
     try{
         // console.log("motivo: ", removalReason, "activo: ", assetToDelete.assetId);
         
@@ -1408,7 +1407,6 @@ function ActivosPageComponent() {
                       </>
                   )}
                   <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-                      <X className="h-4 w-4" />
                       <span className="sr-only">Close</span>
                   </DialogClose>
                 </DialogContent>
@@ -1516,7 +1514,7 @@ function ActivosPageComponent() {
                                     No hay activos registrados.
                                 </TableCell>
                             </TableRow>
-                        ) : (
+                        ): (
                             assets.map((asset) => {
                                 return (
                                     <TableRow key={asset.assetId}>
@@ -1579,8 +1577,8 @@ function ActivosPageComponent() {
                                         </TableCell>
                                     </TableRow>
                                 );
-                            }))
-                        }
+                            })
+                        )}
                         </TableBody>
                         </Table>
                         <div className="flex items-center justify-between mt-4">
@@ -1697,8 +1695,8 @@ function ActivosPageComponent() {
         <DialogContent className="w-[90vw] max-w-[90vw] md:w-full md:max-w-4xl rounded-lg max-h-[90vh] overflow-y-auto">
             {selectedAsset && ( 
             <>
-                <DialogHeader>
-                    <div className="flex items-center justify-between">
+                <DialogHeader className='pr-12'>
+                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                         <div>
                             <DialogTitle className="text-2xl font-headline">Detalles del Activo: {selectedAsset.internalId} {selectedAsset.model.model}</DialogTitle>
                             <DialogDescription>
@@ -1730,6 +1728,7 @@ function ActivosPageComponent() {
                                 <div className="md:col-span-1"><span className="font-semibold">Modelo: </span>{selectedAsset.model.model}</div>
                                 <div className="md:col-span-1"><span className="font-semibold">Area: </span>{selectedAsset.area.area}</div>
                                 {selectedAsset.processor && <div className="md:col-span-1"><span className="font-semibold">Procesador: </span>{selectedAsset.processor?.name}</div>}
+                                {selectedAsset.details && <div className="md:col-span-1"><span className="font-semibold">Detalles: </span>{selectedAsset.details}</div>}
 
                                 {rams.length > 0 && (
                                 <div className="md:col-span-1">
@@ -1929,7 +1928,6 @@ function ActivosPageComponent() {
                         />
                 )}
                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-                    <X className="h-4 w-4" />
                     <span className="sr-only">Close</span>
                 </DialogClose>
             </DialogContent>

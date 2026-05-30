@@ -15,7 +15,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { PlusCircle, X, Pencil, Trash2, Search, Filter } from 'lucide-react';
+import { PlusCircle, X, Pencil, Trash2, Search, Filter, ArrowBigLeft, ArrowBigRight, Loader2, RotateCcw } from 'lucide-react';
 import RegisterForm from '@/components/auth/register-form';
 import DashboardLayout from '@/components/dashboard-layout';
 import Header from '@/components/dashboard/header';
@@ -64,7 +64,7 @@ export default function UsersPage() {
   const { toast } = useToast();
 
   // Fetch users
-    const loadUsers = async () => {
+  const loadUsers = async () => {
       setIsLoading(true);
 
       try {
@@ -86,7 +86,7 @@ export default function UsersPage() {
       } finally {
         setIsLoading(false);
       }
-    };
+  };
 
   useEffect(() => {
     loadUsers();
@@ -99,25 +99,16 @@ export default function UsersPage() {
   };
 
   const handleDelete = async (userId: number) => {
-    if(!confirm('¿Seguro que deseas eliminar este usuario?')) return;
-
     try {
+      if(userId)
       await usersService.delete(userId);
 
-      setUsers(prev => {
-        const updated = prev.filter(u => u.userId !== userId);
+      await loadUsers();
 
-        if(updated.length === 0 && currentPage > 1) {
-          setCurrentPage(p => p - 1);
-        }
-
-        toast({
+      toast({
             title: 'Usuario Eliminado',
             description: `El usuario ha sido eliminado correctamente.`
         });
-
-        return updated;
-      });
     } catch (error) {
       console.error(error);
 
@@ -128,6 +119,27 @@ export default function UsersPage() {
             });
     }
   };
+
+  const handleRestore = async (userId: number) => {
+    try {
+      await usersService.restore(userId);
+
+      toast({
+      title: 'Usuario Restaurado',
+      description: 'El usuario ha sido restaurado correctamente.',
+      });
+
+      loadUsers();
+    } catch (error) {
+      console.error(error);
+
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'No se pudo restaurar el usuario.',
+      });
+    }
+  }
 
   const handleSaveSuccess = () => {
     setIsCreateDialogOpen(false);
@@ -175,6 +187,8 @@ export default function UsersPage() {
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold font-headline tracking-tight">Usuarios</h1>
+
+            {/* Create new user */}
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
@@ -191,12 +205,12 @@ export default function UsersPage() {
                 </DialogHeader>
                 <RegisterForm onRegisterSuccess={handleSaveSuccess}/>
                  <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-                    <X className="h-4 w-4" />
                     <span className="sr-only">Close</span>
                 </DialogClose>
               </DialogContent>
             </Dialog>
           </div>
+
           <Card>
             <CardHeader>
                 <CardTitle>Listado de Usuarios</CardTitle>
@@ -270,73 +284,109 @@ export default function UsersPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {users.map((user) => (
-                      <TableRow key={user.userId}>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                             <Avatar className="h-9 w-9">
-                                <AvatarFallback>{user.initials}</AvatarFallback>
-                             </Avatar>
-                             <div className="grid gap-0.5">
-                                <p className="font-medium">{user.name}</p>
-                                <p className="text-sm text-muted-foreground">{user.email}</p>
-                             </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>{user.company}</TableCell>
-                        <TableCell>
-                            <Badge variant={getRoleBadgeVariant(user.rol)}>{user.rol}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={user.status === 'Active' ? 'default' : 'destructive'}>
-                            {user.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <TooltipProvider>
-                                <div className="flex justify-end gap-2">
-                                     <Tooltip>
-                                        <TooltipTrigger asChild>
-                                           <Button variant="outline" size="icon" onClick={() => handleEditClick(user.userId)}>
-                                                <Pencil className="h-4 w-4" />
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p>Editar Usuario</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-
-                                    <AlertDialog>
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <AlertDialogTrigger asChild>
-                                                     <Button variant="destructive" size="icon">
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
-                                                </AlertDialogTrigger>
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                <p>Eliminar Usuario</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                Esta acción no se puede deshacer. Se eliminará permanentemente al usuario <span className="font-semibold">{user.name}</span>.
-                                            </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => handleDelete(user.userId)}>Confirmar</AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
-                                </div>
-                           </TooltipProvider>
+                    {isLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={6}>
+                            <div className="flex flex-col items-center justify-center min-h-[200px]">
+                            <Loader2 className="h-12 w-12 animate-spin" />
+                            <span className="mt-3 text-muted-foreground">
+                                Cargando activos...
+                            </span>
+                            </div>
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ): users.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-6">
+                            No hay activos registrados.
+                        </TableCell>
+                      </TableRow>
+                    ): (    
+                        users.map((user) => (
+                          <TableRow key={user.userId}>
+                            <TableCell>
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-9 w-9">
+                                    <AvatarFallback>{user.initials}</AvatarFallback>
+                                </Avatar>
+                                <div className="grid gap-0.5">
+                                    <p className="font-medium">{user.name}</p>
+                                    <p className="text-sm text-muted-foreground">{user.email}</p>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>{user.company}</TableCell>
+                            <TableCell>
+                                <Badge variant={getRoleBadgeVariant(user.rol)}>{user.rol}</Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={user.status === 'Active' ? 'default' : 'destructive'}>
+                                {user.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <TooltipProvider>
+                                    <div className="flex justify-end gap-2">
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                              <Button variant="outline" size="icon" onClick={() => handleEditClick(user.userId)}>
+                                                    <Pencil className="h-4 w-4" />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Editar Usuario</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                        {/* Eliminar o restaurar usuario */}
+                                        {user.status === 'Active' ? (
+                                          <AlertDialog>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button variant="destructive" size="icon">
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </AlertDialogTrigger>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>Eliminar Usuario</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    Esta acción no se puede deshacer. Se eliminará permanentemente al usuario <span className="font-semibold">{user.name}</span>.
+                                                </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleDelete(user.userId)}>Confirmar</AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                          </AlertDialog>
+                                        ) : (
+                                          <Tooltip>
+                                            <TooltipTrigger asChild>
+                                              <Button
+                                                variant="outline"
+                                                size="icon"
+                                                onClick={() => handleRestore(user.userId)}
+                                              >
+                                                <RotateCcw className="h-4 w-4" />
+                                              </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                              <p>Restaurar Usuario</p>
+                                            </TooltipContent>
+                                          </Tooltip>
+                                        )}
+                                    </div>
+                              </TooltipProvider>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                    )}
                   </TableBody>
                 </Table>
               </div>
@@ -345,21 +395,13 @@ export default function UsersPage() {
                         Página {pagination.current_page} de {pagination.last_page}
                     </p>
                     <div className='flex gap-2'>
-                        <Button 
-                          variant="outline"
-                          size="sm"
-                          disabled={pagination.current_page === 1}
-                          onClick={() => setCurrentPage((p) => p - 1)}
-                        >
+                        <Button variant="outline" size="sm" disabled={pagination.current_page === 1} onClick={() => setCurrentPage((p) => p - 1)}>
+                          <ArrowBigLeft className="mr-2 h-4 w-4"/>
                           anterior
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={pagination.current_page === pagination.last_page}
-                          onClick={() => setCurrentPage((p) => p + 1)}
-                        > 
+                        <Button variant="outline" size="sm" disabled={pagination.current_page === pagination.last_page} onClick={() => setCurrentPage((p) => p + 1)}> 
                           siguiente
+                          <ArrowBigRight className="mr-2 h-4 w-4"/>
                         </Button>
                     </div>
               </div>
@@ -379,7 +421,6 @@ export default function UsersPage() {
                 </DialogHeader>
                 <RegisterForm onRegisterSuccess={handleSaveSuccess} userToEdit={userToEdit} />
                  <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-                    <X className="h-4 w-4" />
                     <span className="sr-only">Close</span>
                 </DialogClose>
               </DialogContent>

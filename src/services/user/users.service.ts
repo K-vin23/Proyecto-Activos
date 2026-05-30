@@ -30,5 +30,7 @@ export const usersService = {
 
     // getById: (userId: string) => api.get<AuthUser>(`/users/${userId}`),
 
-    delete: (userId: number) => api.delete(USER_PATHS.RUD(userId))
+    delete: (userId: number) => api.delete(USER_PATHS.RUD(userId)),
+
+    restore: (userId: number) => api.post(`${USER_PATHS.BASE}/restore/${userId}`)
 };
