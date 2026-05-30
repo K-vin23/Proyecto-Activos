@@ -9,6 +9,7 @@ export const assetService = {
         areaId?: number;
         search?: string;
         status?: string;
+        typeId?: string;
         page?: number;
     }) => api.get<PaginatedResponse<AssetList>>(ASSET_PATHS.BASE, params),
 
@@ -25,9 +26,12 @@ export const assetService = {
     update: (id: number, data: any) =>
         api.patch<any>(ASSET_PATHS.RUD(id), data),
 
-    setResponsable: (id: number, user: number) =>
-        api.post<any>(ASSET_PATHS.ASSIGN(id), user),
+    setResponsable: (id: number, responsable: number) =>
+        api.post<any>(ASSET_PATHS.ASSIGN(id), {responsable}),
 
-    delete: (id: number) =>
-        api.delete(ASSET_PATHS.RUD(id)),
+    delete: (id: number, removalReason: string) =>
+        api.delete(ASSET_PATHS.RUD(id), { removalReason }),
+
+    restore: (id: number) =>
+        api.post<any>(`${ASSET_PATHS.BASE_REMOVED}/restore/${id}`),
 };

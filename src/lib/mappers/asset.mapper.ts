@@ -7,7 +7,7 @@ export function mapAssetToFormValues(asset: DetailedAsset) {
     responsable: asset.responsable?.userId ?? undefined,
     serialNumber: asset.serialNumber,
     invoice: asset.invoice,
-    purchaseDate: asset.purchaseDate,
+    purchaseDate: new Date(asset.purchaseDate),
     companyId: asset.company.companyId,
     areaId: asset.area.areaId,
     modelId: asset.model.modelId

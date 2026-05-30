@@ -1,7 +1,7 @@
 import { License, Model, Component } from "./catalog.type";
 import { Area } from "./area.type";
 import { Company } from "./company.types";
-import { RegistBy } from "./user.types";
+import { SimpleUser } from "./user.types";
 
 export interface AssetList {
     assetId: number,
@@ -33,7 +33,7 @@ export interface DetailedAsset {
     company: Company,
     status: string,
     serialNumber: string,
-    responsable: RegistBy | null, 
+    responsable: SimpleUser | null, 
     purchaseDate: Date,
     invoice: string,
     networkName?: string | null,

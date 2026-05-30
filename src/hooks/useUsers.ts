@@ -1,10 +1,10 @@
 import { usersService } from "@/services/user/users.service";
-import { FormUser } from "@/types/user.types";
+import { SimpleUser } from "@/types/user.types";
 import { useEffect, useState } from "react";
 
 export function useUserSearch() {
     const [query, setQuery] = useState('');
-    const [results, setResults] = useState<FormUser[]>([]);
+    const [results, setResults] = useState<SimpleUser[]>([]);
     const [isSearching, setIsSearching] = useState(false);
 
     useEffect(() => {
@@ -13,7 +13,6 @@ export function useUserSearch() {
                 setResults([]);
                 return;
             }
-
             try {
                 setIsSearching(true);
 
@@ -29,7 +28,7 @@ export function useUserSearch() {
 
         return () => clearTimeout(debounce);
     }, [query]);
-
+    
     return {
         query,
         setQuery,

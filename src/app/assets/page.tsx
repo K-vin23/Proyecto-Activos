@@ -16,7 +16,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { PlusCircle, X, Calendar as CalendarIcon, Trash2, ArrowLeft, Monitor, Zap, Laptop, ClipboardPlus, Eye, Replace, Download, Search, Filter, Pencil } from 'lucide-react';
+import { PlusCircle, X, Calendar as CalendarIcon, Trash2, RotateCcw, ArrowLeft, ArrowBigLeft, ArrowBigRight, Loader2, Monitor, Zap, Laptop, ClipboardPlus, Eye, Replace, Download, Search, Filter, Pencil } from 'lucide-react';
 import DashboardLayout from '@/components/dashboard-layout';
 import Header from '@/components/dashboard/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -61,7 +61,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { computerService } from '@/services/computer.service';
-import { FormUser } from '@/types/user.types';
+import { SimpleUser } from '@/types/user.types';
 import { usersService } from '@/services/user/users.service';
 import { catalogService } from '@/services/asset/catalog.service';
 import { mapAssetToFormValues, mapRequestToComputer } from '@/lib/mappers/asset.mapper';
@@ -73,6 +73,9 @@ import { assetService } from '@/services/asset/assets.service';
 import { AssetList, DetailedAsset, RemovedList } from '@/types/asset.type';
 import { maintenanceService } from '@/services/maintenance/maintenances.service';
 import { Model } from '@/types/catalog.type';
+import { AuthResponse } from '@/types/auth.types';
+//================= SESSION ====================
+
 //================= FORM SCHEMAS =================
 const computerAssetSchema = z.object({
   internalId: z.string().min(1, 'El identificador del activo es requerido.').max(100, 'El identificador no puede ser mayor a 100 caracteres'),
@@ -130,7 +133,14 @@ type AddHistorySchema = z.infer<typeof addHistorySchema>;
 //================= END FORM SCHEMAS =================
 
 //================= HISTORY FORM =================
-function AddHistoryForm({ assetId, onSaveSuccess, technicians }: { assetId: number, onSaveSuccess: () => void, technicians: FormUser[] }) {
+interface AddHistoryFormProps {
+  assetId: number;
+  onSaveSuccess: () => void;
+  technicians: SimpleUser[];
+  onMaintenanceCreated?: () => void;
+}
+
+function AddHistoryForm({assetId, onSaveSuccess, technicians, onMaintenanceCreated}: AddHistoryFormProps) {
     const { toast } = useToast();    
     const form = useForm<AddHistorySchema>({
         resolver: zodResolver(addHistorySchema),
@@ -143,9 +153,11 @@ function AddHistoryForm({ assetId, onSaveSuccess, technicians }: { assetId: numb
     
     function onSubmit(data: AddHistorySchema) {
         try {
-            console.log('New history entry for asset', assetId, data);
+            // console.log('New history entry for asset', assetId, data);
             if(assetId !== null){
                 maintenanceService.create(assetId, data);
+
+                onMaintenanceCreated?.();
             } else {
                 toast({
                     title: 'Error de activo',
@@ -186,7 +198,7 @@ function AddHistoryForm({ assetId, onSaveSuccess, technicians }: { assetId: numb
                             </FormControl>
                             <SelectContent>
                                 {technicians.map(tech => (
-                                    <SelectItem key={tech.userId} value={tech.userId?.toString()}>{tech.firstname} {tech.middlename} {tech.lastname} {tech.s_lastname}</SelectItem>
+                                    <SelectItem key={tech.userId} value={tech.userId?.toString()}>{tech.name}</SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
@@ -318,7 +330,6 @@ function AssetForm({ typeId, onSaveSuccess, onBack, assetToEdit }: { typeId: 'LA
   useEffect(() => {
     if (isEditMode && assetToEdit && companies.length > 0 && areas.length > 0) {
       form.reset(mapAssetToFormValues(assetToEdit));
-      console.log(assetToEdit.invoice);
 
       setIsSelecting(true);
       setCatalogQuery(
@@ -412,7 +423,7 @@ function AssetForm({ typeId, onSaveSuccess, onBack, assetToEdit }: { typeId: 'LA
         }
 
       if (isEditMode) {
-        // console.log("DATA TO SEND:", JSON.stringify(payload, null, 2));
+        console.log("DATA TO SEND:", JSON.stringify(payload, null, 2));
         await assetService.update(assetToEdit.assetId, payload);
 
         toast({
@@ -420,7 +431,7 @@ function AssetForm({ typeId, onSaveSuccess, onBack, assetToEdit }: { typeId: 'LA
           description: `${display} ha sido actualizado correctamente.`,
         });
       } else {        
-        console.log('DATA TO SEND:', JSON.stringify(payload, null, 2)); 
+        // console.log('DATA TO SEND:', JSON.stringify(payload, null, 2)); 
         await assetService.create(payload);
         toast({
           title: 'Registro Exitoso',
@@ -498,11 +509,11 @@ function AssetForm({ typeId, onSaveSuccess, onBack, assetToEdit }: { typeId: 'LA
                                             className="p-2 hover:bg-gray-100 cursor-pointer"
                                             onClick={() => {
                                                 field.onChange(Number(user.userId)); // se guarda el ID
-                                                setQuery(`${user.firstname} ${user.middlename ?? ''} ${user.lastname} ${user.s_lastname ?? ''}`);
+                                                setQuery(user.name);
                                                 clearResults();
                                             }}
                                         >
-                                    {user.userId} - {user.firstname}{" "} {user.middlename} {user.lastname}{" "} {user.s_lastname}
+                                            {user.name}
                                         </div>
                                     ))}
                                 </div>
@@ -1025,7 +1036,7 @@ function ActivosPageComponent() {
   const [isChangeOwnerOpen, setIsChangeOwnerOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'deleted'>('all');
-  const [selectedResponsable, setSelectedResponsable] = useState<FormUser | null>(null);
+  const [selectedResponsable, setSelectedResponsable] = useState<SimpleUser | null>(null);
   const {
     query: ownerQuery,
     setQuery: setOwnerQuery,
@@ -1033,40 +1044,53 @@ function ActivosPageComponent() {
     isSearching: ownerSearching,
     clearResults
   } = useUserSearch();
+  const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   //    Assets
   const [assets, setAssets] = useState<AssetList[]>([]);
   const [removedAssets, setRemovedAssets] = useState<RemovedList[]>([]);
   const [selectedAsset, setSelectedAsset] = useState<DetailedAsset | null>(null);
   const [assetCache, setAssetCache] = useState<Record<number, any>>({});
   const [assetToEdit, setAssetToEdit] = useState<DetailedAsset | null>(null);
-  const [assetToDelete, setAssetToDelete] = useState<any | null>(null);
+  const [assetToDelete, setAssetToDelete] = useState<AssetList | null>(null);
   const [selectedAssetType, setSelectedAssetType] = useState<'LAP' | 'SFF' | 'TORR' | 'MON' | 'UPS' | null>(null);
   const [removalReason, setRemovalReason] = useState('');
   //    Catalogs
-//   const [userRole, setUserRole] = useState<string | null>(null);
   const { companies, companiesLoading } = useCompanies();
   const { areas, areasLoading } = useAreas();
-  const [technicians, setTechnicians] = useState<FormUser[]>([]);
+  const [technicians, setTechnicians] = useState<SimpleUser[]>([]);
   const { memories, disks, licenses, loading } = useCatalogs();
   //    Configs
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingRemoved, setIsLoadingRemoved] = useState(true);
-  const [removedLoaded, setRemovedLoaded] = useState(false);
+//   const [removedLoaded, setRemovedLoaded] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [advancedFilters, setAdvancedFilters] = useState({
     companyId: '',
     areaId: '',
     status: '',
+    typeId: '',
     search: '',
   });
   const [currentPage, setCurrentPage] = useState(1);
+  const [remcurrentPage, setRemCurrentPage] = useState(1);
   const [pagination, setPagination] = useState({
     current_page: 1,
     last_page: 1,
     per_page: 15,
     total: 0,
   });
+  const [remPagination, setRemPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    per_page: 15,
+    total: 0,
+  });
+  const[session, setSession] = useState<AuthResponse | null>(null);
+  useEffect(()=>{
+    setSession(getSession());
+  }, []);
+  
  //=================== FETCH FROM API ===================
   // Fetch assets
   const loadAssets = async () => {
@@ -1078,6 +1102,7 @@ function ActivosPageComponent() {
             search: debouncedSearch,
             areaId: advancedFilters.areaId ? Number(advancedFilters.areaId) : undefined,
             status: advancedFilters.status,
+            typeId: advancedFilters.typeId
         });
         setAssets(assets.data);
         setPagination(assets.meta);
@@ -1097,8 +1122,13 @@ function ActivosPageComponent() {
     try{
         setIsLoadingRemoved(true);
 
-        const removed = await assetService.listRemoved();
+        const removed = await assetService.listRemoved({
+            search: debouncedSearch,
+            page: remcurrentPage
+        });
+
         setRemovedAssets(removed.data);
+        setRemPagination(removed.meta);
     }catch (e) {
         console.error(e);
         toast({
@@ -1118,11 +1148,11 @@ function ActivosPageComponent() {
 
   // Load removed assets
   useEffect(() => {
-    if(activeTab === 'deleted' && !removedLoaded) {
+    if(activeTab === 'deleted') {
         loadRemovedAssets();
-        setRemovedLoaded(true);
+        // setRemovedLoaded(true);
     }
-  }, [activeTab]);
+  }, [activeTab, remcurrentPage, debouncedSearch]);
 
  // Fecth technicians list
      useEffect(() => {
@@ -1132,7 +1162,7 @@ function ActivosPageComponent() {
         try {
           const response = await usersService.listTechnicians();
   
-          setTechnicians(response.flat());
+          setTechnicians(response.data);
         } catch {
           toast({
             variant: 'destructive',
@@ -1191,6 +1221,10 @@ function ActivosPageComponent() {
         setIsDetailDialogOpen(false);
     } else if (selectedAsset) {
         setIsDetailDialogOpen(true);
+
+        setOwnerQuery('');
+        setSelectedResponsable(null);
+        clearResults();
     }
     setIsChangeOwnerOpen(open);
   }
@@ -1236,26 +1270,23 @@ function ActivosPageComponent() {
 
   const handleDeleteAsset = async () => {
     if (!assetToDelete) {
-        console.log("nothing");
+        console.log("no asset to delete");
         return
     };
     
     try{
-        console.log("motivo: ", removalReason, "computador: ", assetToDelete.id);
+        // console.log("motivo: ", removalReason, "activo: ", assetToDelete.assetId);
         
-        await computerService.delete(assetToDelete.id, removalReason);
-
+        await assetService.delete(assetToDelete.assetId, removalReason);
         setIsDetailDialogOpen(false);
-
         setSelectedAsset(null);
-
         setRemovalReason('');
-
         await loadAssets();
+        await loadRemovedAssets();
 
         toast({
             title: 'Activo Dado de Baja',
-            description: `El activo ${assetToDelete.internalId} ${assetToDelete.name} ha sido movido a la papelera.`
+            description: `El activo ${assetToDelete.internalId} ${assetToDelete.model} ha sido eliminado.`
         });
     } catch(error) {
         console.error(error);
@@ -1265,6 +1296,28 @@ function ActivosPageComponent() {
                 title: 'Error',
                 description: 'No se pudo dar de baja el activo',
             });
+    }
+  }
+
+  const handleRestoreAsset = async (assetId: number) => {
+    try {
+        await assetService.restore(assetId);
+
+        await loadRemovedAssets();
+        await loadAssets();
+
+        toast({
+            title: "Activo Restaurado",
+            description: "El activo fue restaurado correctamente."
+        });
+    } catch(e) {
+        console.error(e);
+
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "No se pudo restaurar el activo."
+        });
     }
   }
   
@@ -1277,7 +1330,7 @@ function ActivosPageComponent() {
   };
 
   const clearAdvancedFilters = () => {
-    setAdvancedFilters({companyId: '', areaId: '', status: '', search: '' });
+    setAdvancedFilters({companyId: '', areaId: '', status: '', typeId: '', search: ''});
   };
 
   // DEBOUNCE SEARCH
@@ -1297,7 +1350,7 @@ function ActivosPageComponent() {
     UPS: 'UPS'
   } as const;
 
-  const isStandardUser = getSession()?.user.rol === 'PER';
+  const isStandardUser = session?.user.rol === 'PER';
 
   // RAM
   const rams = selectedAsset?.ram?.map(ram => ram.name) ?? [];
@@ -1412,6 +1465,16 @@ function ActivosPageComponent() {
                                                       <SelectItem value="Almacen">En Almacén</SelectItem>
                                                   </SelectContent>
                                               </Select>
+                                              <Select value={advancedFilters.typeId} onValueChange={(value) => handleAdvancedFilterChange('typeId', value)}>
+                                                  <SelectTrigger><SelectValue placeholder="Tipo" /></SelectTrigger>
+                                                  <SelectContent>
+                                                      <SelectItem value="LAP">Laptop</SelectItem>
+                                                      <SelectItem value="SFF">SFF</SelectItem>
+                                                      <SelectItem value="TORR">Torre</SelectItem>
+                                                      <SelectItem value="MON">Monitor</SelectItem>
+                                                      <SelectItem value="UPS">UPS</SelectItem>
+                                                  </SelectContent>
+                                              </Select>
                                           </div>
                                           <div className="pt-4 flex justify-end">
                                               <Button variant="ghost" onClick={clearAdvancedFilters}>Limpiar filtros</Button>
@@ -1438,8 +1501,13 @@ function ActivosPageComponent() {
                         <TableBody>
                         {isLoading ? (
                             <TableRow>
-                                <TableCell colSpan={6} className="text-center py-6">
-                                    Cargando activos...
+                                <TableCell colSpan={6}>
+                                    <div className="flex flex-col items-center justify-center min-h-[200px]">
+                                    <Loader2 className="h-12 w-12 animate-spin" />
+                                    <span className="mt-3 text-muted-foreground">
+                                        Cargando activos...
+                                    </span>
+                                    </div>
                                 </TableCell>
                             </TableRow>
                         ): assets.length === 0 ? (
@@ -1520,23 +1588,13 @@ function ActivosPageComponent() {
                                 Página {pagination.current_page} de {pagination.last_page}
                             </p>
                             <div className="flex gap-2">
-                                <Button
-                                    variant="outline"
-                                    disabled={pagination.current_page === 1}
-                                    onClick={() =>
-                                        setCurrentPage((prev) => prev - 1)
-                                    }
-                                >
+                                <Button variant="outline" disabled={pagination.current_page === 1} onClick={() => setCurrentPage((prev) => prev - 1)}>
+                                    <ArrowBigLeft className="mr-2 h-4 w-4"/>
                                     Anterior
                                 </Button>
-                                <Button
-                                    variant="outline"
-                                    disabled={pagination.current_page === pagination.last_page}
-                                    onClick={() =>
-                                        setCurrentPage((prev) => prev + 1)
-                                    }
-                                >
+                                <Button variant="outline" disabled={pagination.current_page === pagination.last_page} onClick={() => setCurrentPage((prev) => prev + 1)}>
                                     Siguiente
+                                    <ArrowBigRight className="mr-2 h-4 w-4"/>
                                 </Button>
                             </div>
                         </div>
@@ -1574,13 +1632,18 @@ function ActivosPageComponent() {
                               </TableRow>
                           </TableHeader>
                           <TableBody>
-                                { isLoading ? (
+                           {isLoading ? (
                                 <TableRow>
-                                    <TableCell colSpan={6} className="text-center py-6">
-                                        Cargando activos removidos...
-                                    </TableCell>
+                                <TableCell colSpan={6}>
+                                    <div className="flex flex-col items-center justify-center min-h-[200px]">
+                                    <Loader2 className="h-12 w-12 animate-spin" />
+                                    <span className="mt-3 text-muted-foreground">
+                                        Cargando activos eliminados...
+                                    </span>
+                                    </div>
+                                </TableCell>
                                 </TableRow>
-                                ): removedAssets.length === 0 ? (
+                            ): removedAssets.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={6} className="text-center py-6">
                                         No hay activos eliminados registrados.
@@ -1595,8 +1658,8 @@ function ActivosPageComponent() {
                                         <TableCell>{String(asset.removalDate)}</TableCell>
                                         <TableCell>{truncate(asset.reason)}</TableCell>
                                         <TableCell>
-                                        <Button variant="outline" size="sm">
-                                            <Trash2 className="mr-2 h-4 w-4" />
+                                        <Button variant="outline" size="sm" onClick={() => handleRestoreAsset(asset.assetId)}>
+                                            <RotateCcw className="mr-2 h-4 w-4" />
                                             Restaurar
                                         </Button>
                                         </TableCell>
@@ -1605,6 +1668,21 @@ function ActivosPageComponent() {
                             )}
                           </TableBody>
                           </Table>
+                          <div className="flex items-center justify-between mt-4">
+                            <p className="text-sm text-muted-foreground">
+                                Página {remPagination.current_page} de {remPagination.last_page}
+                            </p>
+                            <div className="flex gap-2">
+                                <Button variant="outline" disabled={remPagination.current_page === 1} onClick={() =>setRemCurrentPage((prev) => prev - 1)}>
+                                    <ArrowBigLeft className="mr-2 h-4 w-4"/>
+                                    Anterior
+                                </Button>
+                                <Button variant="outline" disabled={pagination.current_page === pagination.last_page} onClick={() => setRemCurrentPage((prev) => prev + 1)}>
+                                    Siguiente
+                                    <ArrowBigRight className="mr-2 h-4 w-4"/>
+                                </Button>
+                            </div>
+                          </div>
                       </div>
                       </CardContent>
                   </Card>
@@ -1697,7 +1775,7 @@ function ActivosPageComponent() {
                             </div>
                         </CardContent>
                     </Card>
-                    <AssetHistory assetId={selectedAsset.assetId}/>
+                    <AssetHistory assetId={selectedAsset.assetId} refreshKey={historyRefreshKey}/>
                 </div>
                 {!isStandardUser && (
                   <DialogFooter className="border-t pt-4 flex-wrap justify-start gap-2">
@@ -1737,8 +1815,8 @@ function ActivosPageComponent() {
                             onSaveSuccess={() => {
                                 setIsHistoryDialogOpen(false);
                                 if (selectedAsset) setIsDetailDialogOpen(true);
-                            }
-                        }
+                            }}
+                            onMaintenanceCreated = {() => setHistoryRefreshKey(prev => prev + 1)}
                             technicians={technicians}
                         />
                     )}
@@ -1782,13 +1860,13 @@ function ActivosPageComponent() {
                                             setSelectedResponsable(user);
 
                                             setOwnerQuery(
-                                                `${user.firstname} ${user.lastname}`
+                                                `${user.name}`
                                             );
 
                                             clearResults();
                                         }}
                                     >
-                                        {user.userId} - {user.firstname} {user.lastname ?? " "} {user.lastname} {user.s_lastname ?? " "}
+                                        {user.name}
                                     </div>
                                 ))}
                             </div>
@@ -1798,7 +1876,7 @@ function ActivosPageComponent() {
                             <p className="text-sm text-muted-foreground">
                                 Responsable seleccionado:
                                 <span className="font-medium ml-1">
-                                    {selectedResponsable.firstname} {selectedResponsable.middlename} {selectedResponsable.lastname} {selectedResponsable.s_lastname}
+                                    {selectedResponsable.name}
                                 </span>
                             </p>
                         )}
@@ -1808,13 +1886,17 @@ function ActivosPageComponent() {
                     <Button variant="outline" onClick={() => handleChangeOwnerDialogChange(false)}>Cancelar</Button>
                     <Button
                         onClick={async () => {
-                            if (!selectedResponsable || !selectedAsset) return;
-
+                            if (!selectedResponsable || !selectedAsset) return;  
                             await assetService.setResponsable(
                                 selectedAsset?.assetId,
                                 selectedResponsable.userId
                             );
 
+                            setSelectedAsset(prev => prev ? {
+                                ...prev,
+                                responsable: {userId: selectedResponsable.userId, name: selectedResponsable.name}
+                            } : null);
+                            await loadAssets();
                             toast({
                                 title: "Responsable Cambiado",
                                 description: "El responsable del activo ha sido actualizado."
