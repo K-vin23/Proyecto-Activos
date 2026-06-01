@@ -290,7 +290,7 @@ export default function UsersPage() {
                             <div className="flex flex-col items-center justify-center min-h-[200px]">
                             <Loader2 className="h-12 w-12 animate-spin" />
                             <span className="mt-3 text-muted-foreground">
-                                Cargando activos...
+                                Cargando usuarios...
                             </span>
                             </div>
                         </TableCell>
@@ -298,7 +298,7 @@ export default function UsersPage() {
                     ): users.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={6} className="text-center py-6">
-                            No hay activos registrados.
+                            No hay usuarios registrados.
                         </TableCell>
                       </TableRow>
                     ): (    

@@ -27,7 +27,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Box, Loader2, X } from 'lucide-react';
-import RegisterForm from '@/components/auth/register-form';
+// import RegisterForm from '@/components/auth/register-form';
 import { logUser } from '@/types/auth.types';
 
 
@@ -49,11 +49,11 @@ export default function LoginPage() {
 
     try {
       const response = await usersService.login(user);
-      saveSession(response);
+      saveSession(response.data);
 
       toast({
         title: 'Inicio de sesion Exitoso',
-        description: `Bienvenido, ${response.user.name}`,
+        description: `Bienvenido, ${response.data.user.name}`,
       });
 
       window.location.replace('/');

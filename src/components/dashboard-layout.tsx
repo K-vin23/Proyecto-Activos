@@ -18,10 +18,10 @@ import {
 import {
   LayoutDashboard,
   Users,
-  Archive,
   LogOut,
   Box,
   Building,
+  Boxes,
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { usePathname } from 'next/navigation';
@@ -81,8 +81,8 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
       <div className="flex min-h-screen bg-background">
         <Sidebar>
           <SidebarHeader>
-            <div className="flex items-center gap-3 p-2">
-              <Box className="size-8 text-primary-foreground" />
+            <div className="flex flex-col items-center leading-none">
+              <Box className="size-9 text-primary-foreground mb-1" />
               <h1 className="text-xl font-bold font-headline text-primary-foreground">
                 Activos Pro
               </h1>
@@ -123,7 +123,7 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive('/assets')} tooltip="Activos">
                   <Link href="/assets">
-                    <Archive />
+                    <Boxes />
                     <span>Activos</span>
                   </Link>
                 </SidebarMenuButton>

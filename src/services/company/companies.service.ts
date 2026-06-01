@@ -1,16 +1,24 @@
 import { api } from "@/lib/api.client";
-import { Company } from "@/types/company.types";
+import { CompanyList, CreateCompany } from "@/types/company.types";
 import { COMPANY_PATHS } from "@/services/company/company.enpoints";
+import { PaginatedResponse } from "@/types/paginate.type";
 
 export const companiesService = {
-    list: () => api.get<Company[]>(COMPANY_PATHS.BASE),
+    list: (params?: {
+        search?: string,
+        status?: string,
+        city?: string,
+    }) => api.get<PaginatedResponse<CompanyList>>(COMPANY_PATHS.BASE, params),
  
-    create: (data: Partial<Company>) =>
-        api.post<Company>(COMPANY_PATHS.BASE, data),
+    create: (data: CreateCompany) =>
+        api.post(COMPANY_PATHS.BASE, data),
 
-    update: (companyId: number, data: Partial<Company>) =>
-        api.patch<Company>(COMPANY_PATHS.UD(companyId), data),
+    update: (companyId: number, data: Partial<CompanyList>) =>
+        api.patch<CompanyList>(COMPANY_PATHS.UD(companyId), data),
     
     delete: (companyId: number) =>
         api.delete(COMPANY_PATHS.UD(companyId)),
+
+    restore: (companyId: number, data: {restoreAll: boolean}) =>
+        api.post(`${COMPANY_PATHS.BASE}/restore/${companyId}`, data),
 };

@@ -1,5 +1,5 @@
 import { api } from "@/lib/api.client";
-import { AssetList, ComputerRequest, DetailedAsset, RemovedList } from "@/types/asset.type";
+import { AssetList, DetailedAsset, RemovedList } from "@/types/asset.type";
 import { DataResponse2, PaginatedResponse } from "@/types/paginate.type";
 import { ASSET_PATHS } from "@/services/asset/asset.enpoints";
 

@@ -74,6 +74,7 @@ import { AssetList, DetailedAsset, RemovedList } from '@/types/asset.type';
 import { maintenanceService } from '@/services/maintenance/maintenances.service';
 import { Model } from '@/types/catalog.type';
 import { AuthResponse } from '@/types/auth.types';
+import { useRouter } from 'next/navigation';
 //================= SESSION ====================
 
 //================= FORM SCHEMAS =================
@@ -423,7 +424,7 @@ function AssetForm({ typeId, onSaveSuccess, onBack, assetToEdit }: { typeId: 'LA
         }
 
       if (isEditMode) {
-        console.log("DATA TO SEND:", JSON.stringify(payload, null, 2));
+        // console.log("DATA TO SEND:", JSON.stringify(payload, null, 2));
         await assetService.update(assetToEdit.assetId, payload);
 
         toast({
@@ -1028,6 +1029,7 @@ function AssetTypeSelector({ onSelect, onCancel }: { onSelect: (type: 'LAP' | 'S
 
 function ActivosPageComponent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { toast } = useToast();
   //   Dialog tabs config
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -1070,7 +1072,7 @@ function ActivosPageComponent() {
     areaId: '',
     status: '',
     typeId: '',
-    search: '',
+    // search: '',
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [remcurrentPage, setRemCurrentPage] = useState(1);
@@ -1087,6 +1089,7 @@ function ActivosPageComponent() {
     total: 0,
   });
   const[session, setSession] = useState<AuthResponse | null>(null);
+  
   useEffect(()=>{
     setSession(getSession());
   }, []);
@@ -1141,6 +1144,20 @@ function ActivosPageComponent() {
     }
   }
 
+  // Load assets from url param
+  useEffect(() => {
+    const openAssetId = searchParams.get('openAssetId');
+
+    if (!openAssetId || isDetailDialogOpen) return;
+
+    handleOpenDetailDialog(Number(openAssetId));
+
+    const params = new URLSearchParams(searchParams);
+    params.delete('openAssetId');
+
+    router.replace('/assets');
+}, [searchParams, router, isDetailDialogOpen]);
+
   // Load assets
   useEffect(() => {   
     loadAssets();
@@ -1193,18 +1210,28 @@ function ActivosPageComponent() {
   };
 
   const handleOpenDetailDialog = async (assetId: number) => {
-    if (assetCache[assetId]) {
-        setSelectedAsset(assetCache[assetId]);
+    try {
+        if (assetCache[assetId]) {
+            setSelectedAsset(assetCache[assetId]);
+            setIsDetailDialogOpen(true);
+            return;
+        }
+        const res = await assetService.get(assetId);
+        setAssetCache(prev => ({
+            ...prev,
+            [assetId]: res.data
+        }));
+        setSelectedAsset(res.data);
         setIsDetailDialogOpen(true);
-        return;
+    } catch (error) {
+        console.error(error);
+
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'No se pudo cargar el activo.'
+        });
     }
-    const res = await assetService.get(assetId);
-    setAssetCache(prev => ({
-        ...prev,
-        [assetId]: res.data
-    }));
-    setSelectedAsset(res.data);
-    setIsDetailDialogOpen(true);
   };
 
   const handleHistoryDialogChange = (open: boolean) => {
@@ -1329,7 +1356,7 @@ function ActivosPageComponent() {
   };
 
   const clearAdvancedFilters = () => {
-    setAdvancedFilters({companyId: '', areaId: '', status: '', typeId: '', search: ''});
+    setAdvancedFilters({companyId: '', areaId: '', status: '', typeId: ''});
   };
 
   // DEBOUNCE SEARCH

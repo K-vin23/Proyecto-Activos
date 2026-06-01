@@ -11,15 +11,15 @@ export interface AssetByArea {
 }
 
 export interface UpcomingMaintenance {
-    assetType: string,
-    model: string,
+    assetId: number,
     internalId: string,
-    nextMaintenance: string; //string ISO
+    model: string,
+    nextMaintenance: Date,
+    daysUntilMaintenance: number,
 }
 
 export interface DashboardResponse {
     totals: DashboardTotals;
-    upcomingMaintenances: UpcomingMaintenance[];
     assetsByArea: AssetByArea[]; 
 }
 

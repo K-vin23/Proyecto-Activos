@@ -1,12 +1,12 @@
 import { api } from "@/lib/api.client";
-import { AuthUser, AuthResponse, logUser } from "@/types/auth.types";
+import { AuthResponse, logUser } from "@/types/auth.types";
 import { DetailedUser, ListUser, SimpleUser } from "@/types/user.types";
 import { DataResponse, DataResponse2, PaginatedResponse } from "@/types/paginate.type";
 import { USER_PATHS } from "@/services/user/user.enpoints";
 
 
 export const usersService = {
-    login: (data: logUser) => api.post<AuthResponse>('/login', data),
+    login: (data: logUser) => api.post<DataResponse2<AuthResponse>>('/login', data),
 
     // getMe: () => api.get<AuthUser>('/users/me'),
 

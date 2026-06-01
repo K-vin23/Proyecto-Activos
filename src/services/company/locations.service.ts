@@ -6,7 +6,7 @@ import { COMPANY_PATHS } from "@/services/company/company.enpoints";
 export const locationService = {
    list: (companyId: number, cityId: string) => api.get<DataResponse<Location>>(COMPANY_PATHS.LOCS_CRUD(companyId), {city: cityId }),
 
-   get: (companyId: number) => api.get<Location>(COMPANY_PATHS.LOCS_CRUD(companyId)),
+   get: (companyId: number) => api.get<DataResponse<Location>>(COMPANY_PATHS.LOCS_CRUD(companyId)),
    
    create: (companyId: number, data: Partial<Location>) => 
     api.post<Location>(COMPANY_PATHS.LOCS_CRUD(companyId), data),

@@ -1,6 +1,6 @@
 import { License, Model, Component } from "./catalog.type";
 import { Area } from "./area.type";
-import { Company } from "./company.types";
+import { CompanyList } from "./company.types";
 import { SimpleUser } from "./user.types";
 
 export interface AssetList {
@@ -30,7 +30,7 @@ export interface DetailedAsset {
     area: Area,
     categoryId: AssetCategory,
     category: string, 
-    company: Company,
+    company: CompanyList,
     status: string,
     serialNumber: string,
     responsable: SimpleUser | null, 
