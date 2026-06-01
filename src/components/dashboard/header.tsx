@@ -22,7 +22,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-// import { SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
@@ -94,6 +94,7 @@ export default function Header() {
 
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-card px-4 sticky top-0 z-30 lg:h-[60px] lg:px-6">
+      <SidebarTrigger />
       <div className="w-full flex-1">
         <h2 className="text-lg font-semibold">
           Bienvenido, {firstname}

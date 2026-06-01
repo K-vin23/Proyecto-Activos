@@ -1,6 +1,6 @@
 import { getAuthToken, clearSession } from '@/lib/session';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://192.168.1.2:8000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://192.168.129.214:8000/api';
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
