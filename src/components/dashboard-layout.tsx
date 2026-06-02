@@ -22,8 +22,10 @@ import {
   Box,
   Building,
   Boxes,
+  BookOpenText,
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import Header from '@/components/dashboard/header';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { getSession, clearSession } from '@/lib/session';
@@ -73,7 +75,8 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
   const CAN_VIEW = {
     Empresas: user?.rol === Rol.Admin,
     Usuarios: user?.rol === Rol.Admin || user?.rol === Rol.Tecnico,
-    Dasboard: user?.rol === Rol.Admin || user?.rol === Rol.Tecnico
+    Dasboard: user?.rol === Rol.Admin || user?.rol === Rol.Tecnico,
+    Catalog: user?.rol === Rol.Admin || user?.rol === Rol.Tecnico
   } as const;
 
   return (
@@ -128,6 +131,16 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              {CAN_VIEW.Catalog && (
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive('/catalogo')} tooltip="Catálogo">
+                  <Link href="/catalogo">
+                    <BookOpenText />
+                    <span>Catálogo Técnico</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter>
@@ -154,7 +167,10 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
             </SidebarMenu>
           </SidebarFooter>
         </Sidebar>
-        <SidebarInset className="overflow-auto">{children}</SidebarInset>
+        <SidebarInset className="overflow-auto">
+          <Header />
+          {children}
+        </SidebarInset>
       </div>
     </SidebarProvider>
   );

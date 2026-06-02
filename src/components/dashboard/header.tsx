@@ -90,10 +90,16 @@ export default function Header() {
     setIsDialogOpen(false);
   };
 
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const firstname = user?.name?.split(' ')[0] ?? '';
 
   return (
-    <header className="flex h-14 items-center gap-4 border-b bg-card px-4 sticky top-0 z-30 lg:h-[60px] lg:px-6">
+    <header className="flex h-14 items-center gap-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 sticky top-0 z-40 lg:h-[60px] lg:px-6">
       <SidebarTrigger />
       <div className="w-full flex-1">
         <h2 className="text-lg font-semibold">
@@ -115,8 +121,6 @@ export default function Header() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {/* <DropdownMenuLabel>{user?.name}</DropdownMenuLabel>
-            <DropdownMenuSeparator /> */}
             <DialogTrigger asChild>
               <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                 Cambiar Clave
@@ -127,13 +131,18 @@ export default function Header() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Cambiar Contraseña</DialogTitle>
-            <DialogDescription>
-              Asegúrate de que tu nueva contraseña sea segura.
-            </DialogDescription>
-          </DialogHeader>
+        {mounted && (
+          <DialogContent 
+            className="sm:max-w-[425px]"
+            aria-labelledby="dialog-title"
+            aria-describedby="dialog-description"
+          >
+            <DialogHeader>
+              <DialogTitle id="dialog-title">Cambiar Contraseña</DialogTitle>
+              <DialogDescription id="dialog-description">
+                Asegúrate de que tu nueva contraseña sea segura.
+              </DialogDescription>
+            </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="current-password" className="text-right">
@@ -177,7 +186,7 @@ export default function Header() {
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+        )}      </Dialog>
     </header>
   );
 }

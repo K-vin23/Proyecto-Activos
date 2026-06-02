@@ -4,7 +4,6 @@
 import type { DashboardResponse } from '@/types/dashboard.types';
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/dashboard-layout';
-import Header from '@/components/dashboard/header';
 import SummaryCards from '@/components/dashboard/summary-cards';
 import AssetsChart from '@/components/dashboard/assets-chart';
 import UpcomingMaintenance from '@/components/dashboard/upcoming-maintenance';
@@ -50,7 +49,6 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="flex flex-col h-full min-w-[600px]">
-        <Header />
         <main className="flex-1 overflow-y-auto">
           {loadingDashboard ? (
             <div className="flex h-full min-h-[70vh] items-center justify-center">

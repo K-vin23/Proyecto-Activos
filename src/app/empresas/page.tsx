@@ -17,7 +17,6 @@ import {
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { PlusCircle, X, Pencil, Trash2, Search, Filter, ArrowBigLeft, ArrowBigRight, RotateCcw, Loader2, MapPinned } from 'lucide-react';
 import DashboardLayout from '@/components/dashboard-layout';
-import Header from '@/components/dashboard/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -325,7 +324,6 @@ export default function EmpresasPage() {
   return (
     <DashboardLayout>
       <div className="flex flex-col h-full min-w-[800px]">
-        <Header />
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold font-headline tracking-tight">Empresas</h1>

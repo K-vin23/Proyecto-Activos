@@ -18,7 +18,6 @@ import {
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { PlusCircle, Calendar as CalendarIcon, Trash2, RotateCcw, ArrowLeft, ArrowBigLeft, ArrowBigRight, Loader2, Monitor, Zap, Laptop, ClipboardPlus, Eye, Replace, Download, Search, Filter, Pencil, CircleX } from 'lucide-react';
 import DashboardLayout from '@/components/dashboard-layout';
-import Header from '@/components/dashboard/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -75,6 +74,7 @@ import { maintenanceService } from '@/services/maintenance/maintenances.service'
 import { Model } from '@/types/catalog.type';
 import { AuthResponse } from '@/types/auth.types';
 import { useRouter } from 'next/navigation';
+import ModelSearch from '@/components/catalogs/model-search';
 //================= SESSION ====================
 
 //================= FORM SCHEMAS =================
@@ -266,8 +266,8 @@ function AddHistoryForm({assetId, onSaveSuccess, technicians, onMaintenanceCreat
 function AssetForm({ typeId, onSaveSuccess, onBack, assetToEdit }: { typeId: 'LAP' | 'SFF' | 'TORR' | 'MON' | 'UPS', onSaveSuccess?: () => void, onBack?: () => void, assetToEdit?: DetailedAsset | null }) {
   const { toast } = useToast();
   const isEditMode = !!assetToEdit;
-  const [catalogQuery, setCatalogQuery] = useState('');
-  const [catalogResults, setCatalogResults] = useState<Model[]>([]);
+//   const [catalogQuery, setCatalogQuery] = useState('');
+//   const [catalogResults, setCatalogResults] = useState<Model[]>([]);
   const [isSelecting, setIsSelecting] = useState(false);
   const { memories, disks, licenses } = useCatalogs();
   const { companies, companiesLoading } = useCompanies();
@@ -333,37 +333,37 @@ function AssetForm({ typeId, onSaveSuccess, onBack, assetToEdit }: { typeId: 'LA
       form.reset(mapAssetToFormValues(assetToEdit));
 
       setIsSelecting(true);
-      setCatalogQuery(
-        assetToEdit.model.model ? `${assetToEdit.model.brand} ${assetToEdit.model.model}` : ''
-      );
-      setCatalogResults([]);
+    //   setCatalogQuery(
+    //     assetToEdit.model.model ? `${assetToEdit.model.brand} ${assetToEdit.model.model}` : ''
+    //   );
+    //   setCatalogResults([]);
     }
   }, [isEditMode, assetToEdit, companies, areas]);
 
 
 // Catalog models search
-  useEffect(() => { 
-    if (isSelecting) return; 
+//   useEffect(() => { 
+//     if (isSelecting) return; 
 
-    const fetchCatalog = async () => {
-      if (catalogQuery.length < 1) {
-        setCatalogResults([]);
-        return;
-      }
+//     const fetchCatalog = async () => {
+//       if (catalogQuery.length < 1) {
+//         setCatalogResults([]);
+//         return;
+//       }
 
-      try {
-        const res = await catalogService.search(catalogQuery);
-        console.log(res.data);
-        setCatalogResults(res.data); 
-      } catch (e) {
-        console.error(e);
-      }
-    };
+//       try {
+//         const res = await catalogService.search(catalogQuery);
+//         console.log(res.data);
+//         setCatalogResults(res.data); 
+//       } catch (e) {
+//         console.error(e);
+//       }
+//     };
 
-    const delayDebounce = setTimeout(fetchCatalog, 300);
+//     const delayDebounce = setTimeout(fetchCatalog, 300);
 
-    return () => clearTimeout(delayDebounce);
-  }, [catalogQuery]);
+//     return () => clearTimeout(delayDebounce);
+//   }, [catalogQuery]);
 
   useEffect(() => {
   if (!isSelecting) return;
@@ -619,51 +619,25 @@ function AssetForm({ typeId, onSaveSuccess, onBack, assetToEdit }: { typeId: 'LA
                 />
 
                 {/* CATALOGO MODELOS ACTIVOS */}
-                <FormItem>
-                    <FormLabel>Modelo de Equipo</FormLabel>
-                        <FormControl>
-                            <Input
-                                placeholder="Buscar marca, modelo o procesador..."
-                                value={catalogQuery}
-                                onChange={(e) => setCatalogQuery(e.target.value)}
-                                onBlur={() => setTimeout(() => setCatalogResults([]), 200)}
-                            />
-                        </FormControl>
-
-                    {/* RESULTADOS */}
-                    {catalogResults.length > 0 && (
-                    <div className="border rounded-md mt-2 max-h-40 overflow-y-auto">
-                        {catalogResults.map((model) => (
-                        <div
-                            key={model.modelId}
-                            className="p-2 hover:bg-gray-100 cursor-pointer"
-                            onClick={() => {
-                                setIsSelecting(true);
-
-                                // relleno automático
-                                form.setValue("modelId", model.modelId);
-
-                                setCatalogQuery(
-                                    `${model.brand} ${model.model}`
-                                );
-
-                                setCatalogResults([]);
-                            }}
-                        >
-                            <div className="font-medium">
-                                {model.brand} {model.model}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                                {model?.processor[0]?.name ?? ''}
-                            </div>
-                        </div>
-                        ))}
-                    </div>
+                <FormField
+                    control={form.control}
+                    name='modelId'
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Modelo de Equipo</FormLabel>
+                                <FormControl>
+                                    <ModelSearch
+                                        value={field.value}
+                                        onChange={(modelId) =>
+                                            field.onChange(modelId)
+                                        }
+                                    />
+                                </FormControl>
+                            <FormMessage />
+                        </FormItem>
                     )}
 
-                    <FormMessage />
-                </FormItem>
-
+                />
                 {/* EMPRESA */}
                 <FormField
                 control={form.control}
@@ -1172,7 +1146,7 @@ function ActivosPageComponent() {
   }, [activeTab, remcurrentPage, debouncedSearch]);
 
  // Fecth technicians list
-     useEffect(() => {
+    useEffect(() => {
       const fetchTechnicians = async () => {
         setIsLoading(true);
   
@@ -1402,8 +1376,7 @@ function ActivosPageComponent() {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col h-full min-w-[800px]">
-        <Header />
+      <div className="flex flex-col h-full min-w-[600px] p-6 gap-6">
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold font-headline tracking-tight">Activos</h1>

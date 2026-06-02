@@ -18,7 +18,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { PlusCircle, X, Pencil, Trash2, Search, Filter, ArrowBigLeft, ArrowBigRight, Loader2, RotateCcw } from 'lucide-react';
 import RegisterForm from '@/components/auth/register-form';
 import DashboardLayout from '@/components/dashboard-layout';
-import Header from '@/components/dashboard/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -183,7 +182,6 @@ export default function UsersPage() {
   return (
     <DashboardLayout>
       <div className="flex flex-col h-full min-w-[800px]">
-        <Header />
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold font-headline tracking-tight">Usuarios</h1>
