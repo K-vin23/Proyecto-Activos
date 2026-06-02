@@ -1,7 +1,7 @@
 import { License, Model, Component } from "./catalog.type";
 import { Area } from "./area.type";
-import { Company } from "./company.types";
-import { RegistBy } from "./user.types";
+import { CompanyList } from "./company.types";
+import { SimpleUser } from "./user.types";
 
 export interface AssetList {
     assetId: number,
@@ -25,22 +25,38 @@ export type AssetCategory = | 'LAP'| 'SFF' | 'TORR' | 'MON' | 'UPS';
 
 export interface DetailedAsset {
     assetId: number,
-    id: string,
+    internalId: string,
     model: Model,
     area: Area,
     categoryId: AssetCategory,
     category: string, 
-    company: Company,
+    company: CompanyList,
     status: string,
     serialNumber: string,
-    responsable: RegistBy | null, 
+    responsable: SimpleUser | null, 
     purchaseDate: Date,
     invoice: string,
     networkName?: string | null,
-    processor?: {id: number, name: string} | null,
+    processor?: Component | null,
     details?: string,
     ram?: Component[] | [],
     storage?: Component[] | [],
     osLicense?: License,
     officeLicense?: License
+}
+
+export interface ComputerRequest {
+    serialNumber: string, 
+    networkName: string, 
+    companyId: number, 
+    categoryId: string, 
+    invoice: string, 
+    purchaseDate: Date, 
+    internalId: string, 
+    areaId: number, 
+    modelId: number, 
+    responsable: number, 
+    memories: { id: number}[],
+    disks: { id: number}[],
+    licenses: { licenseId: number, licenseKey: string}[]
 }

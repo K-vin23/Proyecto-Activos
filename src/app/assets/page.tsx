@@ -1,7 +1,7 @@
-
 'use client';
 
 import * as React from 'react';
+import { getSession } from '@/lib/session';
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -16,9 +16,8 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { PlusCircle, X, Calendar as CalendarIcon, Trash2, ArrowLeft, Monitor, Zap, Laptop, ClipboardPlus, Eye, Replace, Download, Search, Filter, Pencil } from 'lucide-react';
+import { PlusCircle, Calendar as CalendarIcon, Trash2, RotateCcw, ArrowLeft, ArrowBigLeft, ArrowBigRight, Loader2, Monitor, Zap, Laptop, ClipboardPlus, Eye, Replace, Download, Search, Filter, Pencil, CircleX } from 'lucide-react';
 import DashboardLayout from '@/components/dashboard-layout';
-import Header from '@/components/dashboard/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -61,49 +60,54 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { computerService } from '@/services/computer.service';
-import { FormUser } from '@/types/user.types';
-import { usersService } from '@/services/users.service';
-import { catalogService } from '@/services/catalog.service';
-import { mapAssetToFormValues, mapFormToComputer } from '@/lib/mappers/computer.mapper';
+import { SimpleUser } from '@/types/user.types';
+import { usersService } from '@/services/user/users.service';
+import { catalogService } from '@/services/asset/catalog.service';
+import { mapAssetToFormValues, mapRequestToComputer } from '@/lib/mappers/asset.mapper';
 import { useCatalogs } from '@/hooks/useCatalogs';
 import { useCompanies } from '@/hooks/useCompanies';
 import { useAreas } from '@/hooks/useAreas';
 import { useUserSearch } from '@/hooks/useUsers';
-import { assetService } from '@/services/assets.service';
+import { assetService } from '@/services/asset/assets.service';
 import { AssetList, DetailedAsset, RemovedList } from '@/types/asset.type';
-import { maintenanceService } from '@/services/maintenances.service';
-// import { MaintenanceList } from '@/types/maintenance.type';
+import { maintenanceService } from '@/services/maintenance/maintenances.service';
+import { Model } from '@/types/catalog.type';
+import { AuthResponse } from '@/types/auth.types';
+import { useRouter } from 'next/navigation';
+import ModelSearch from '@/components/catalogs/model-search';
+//================= SESSION ====================
 
+//================= FORM SCHEMAS =================
 const computerAssetSchema = z.object({
-  id: z.string().min(1, 'El nombre del activo es requerido.'),
+  internalId: z.string().min(1, 'El identificador del activo es requerido.').max(100, 'El identificador no puede ser mayor a 100 caracteres'),
   responsable: z.number().optional(),
-  serialNumber: z.string().min(1, 'El número de serie es requerido.'),
-  invoiceNumber: z.string().optional(),
+  serialNumber: z.string().min(1, 'El número de serie es requerido.').max(100, 'El número de serie no puede ser mayor a 100 caracteres'),
+  invoice: z.string().max(50, 'La factura no puede superar los 50 caracteres').optional(),
   purchaseDate: z.date({ required_error: 'La fecha de compra es requerida.' }),
   companyId: z.number({ required_error: 'La empresa es requerida.' }),
   areaId: z.number({ required_error: 'El area es requerida.' }),
   categoryId: z.enum(['LAP', 'SFF', 'TORR']),
   modelId: z.number({ required_error: 'El modelo es requerido.'}),
-  networkName: z.string().optional(),
+  networkName: z.string().max(50, 'El nombre en red no puede superar los 50 caracteres').optional(),
   ram: z.array(z.number().optional()).min(1).max(3),
   storage: z.array(z.number().optional()).min(1).max(3),
   osLicenseId: z.number({ required_error: 'La licencia de windows es requerida.'}),
-  osKey: z.string().optional(),
+  osKey: z.string().max(120, 'La llave del sistema operativo no puede superar los 120 caracteres').optional(),
   officeLicenseId: z.number({ required_error: 'La licencia de office es requerida.'}),
-  officeKey: z.string().optional(),
+  officeKey: z.string().max(120, 'La llave del office suite no puede superar los 120 caracteres').optional(),
 });
 
 const simpleAssetSchema = z.object({
-    id: z.string().min(1, 'El nombre del activo es requerido.'),
+    internalId: z.string().min(1, 'El identificador del activo es requerido.').max(100, 'El identificador no puede ser mayor a 100 caracteres'),
     responsable: z.number().optional(),
-    serialNumber: z.string().min(1, 'El número de serie es requerido.'),
-    invoiceNumber: z.string().optional(),
+    serialNumber: z.string().min(1, 'El número de serie es requerido.').max(100, 'El número de serie no puede ser mayor a 100 caracteres'),
+    invoice: z.string().max(50, 'La factura no puede superar los 50 caracteres').optional(),
     purchaseDate: z.date({ required_error: 'La fecha de compra es requerida.' }),
     companyId: z.number({ required_error: 'La empresa es requerida.' }),
     areaId: z.number({ required_error: 'El area es requerida.' }),
     categoryId: z.enum(['MON', 'UPS']),
     modelId: z.number({ required_error: 'El modelo es requerido.'}),
-    details: z.string().optional(),
+    details: z.string().max(100, 'Los detalles del activo no puede superar los 50 caracteres').optional(),
 });
 
 const assetSchema = z.discriminatedUnion(
@@ -127,8 +131,17 @@ const addHistorySchema = z.object({
 });
 
 type AddHistorySchema = z.infer<typeof addHistorySchema>;
+//================= END FORM SCHEMAS =================
 
-function AddHistoryForm({ assetId, onSaveSuccess, technicians }: { assetId: number, onSaveSuccess: () => void, technicians: FormUser[] }) {
+//================= HISTORY FORM =================
+interface AddHistoryFormProps {
+  assetId: number;
+  onSaveSuccess: () => void;
+  technicians: SimpleUser[];
+  onMaintenanceCreated?: () => void;
+}
+
+function AddHistoryForm({assetId, onSaveSuccess, technicians, onMaintenanceCreated}: AddHistoryFormProps) {
     const { toast } = useToast();    
     const form = useForm<AddHistorySchema>({
         resolver: zodResolver(addHistorySchema),
@@ -141,9 +154,11 @@ function AddHistoryForm({ assetId, onSaveSuccess, technicians }: { assetId: numb
     
     function onSubmit(data: AddHistorySchema) {
         try {
-            console.log('New history entry for asset', assetId, data);
+            // console.log('New history entry for asset', assetId, data);
             if(assetId !== null){
                 maintenanceService.create(assetId, data);
+
+                onMaintenanceCreated?.();
             } else {
                 toast({
                     title: 'Error de activo',
@@ -184,7 +199,7 @@ function AddHistoryForm({ assetId, onSaveSuccess, technicians }: { assetId: numb
                             </FormControl>
                             <SelectContent>
                                 {technicians.map(tech => (
-                                    <SelectItem key={tech.userId} value={tech.userId?.toString()}>{tech.firstname} {tech.middlename} {tech.lastname} {tech.s_lastname}</SelectItem>
+                                    <SelectItem key={tech.userId} value={tech.userId?.toString()}>{tech.name}</SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
@@ -247,12 +262,12 @@ function AddHistoryForm({ assetId, onSaveSuccess, technicians }: { assetId: numb
     );
 }
 
-// FORMULARIO ACTIVOS
-function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetType: 'LAP' | 'SFF' | 'TORR' | 'MON' | 'UPS', onSaveSuccess?: () => void, onBack?: () => void, assetToEdit?: any | null }) {
+// ================= ASSET FORM =================
+function AssetForm({ typeId, onSaveSuccess, onBack, assetToEdit }: { typeId: 'LAP' | 'SFF' | 'TORR' | 'MON' | 'UPS', onSaveSuccess?: () => void, onBack?: () => void, assetToEdit?: DetailedAsset | null }) {
   const { toast } = useToast();
   const isEditMode = !!assetToEdit;
-  const [catalogQuery, setCatalogQuery] = useState('');
-  const [catalogResults, setCatalogResults] = useState<any[]>([]);
+//   const [catalogQuery, setCatalogQuery] = useState('');
+//   const [catalogResults, setCatalogResults] = useState<Model[]>([]);
   const [isSelecting, setIsSelecting] = useState(false);
   const { memories, disks, licenses } = useCatalogs();
   const { companies, companiesLoading } = useCompanies();
@@ -265,20 +280,20 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
     clearResults
   } = useUserSearch();
   
-  const isComputer = ['LAP','SFF','TORR'].includes(assetType);
+  const isComputer = ['LAP','SFF','TORR'].includes(typeId);
 
   const schema = isComputer ? computerAssetSchema : simpleAssetSchema;
 
   const defaultValues: AssetFormData = 
     isComputer ? {
-        id: '', 
+        internalId: '', 
         responsable: undefined, 
         serialNumber: '', 
-        invoiceNumber: '', 
+        invoice: '', 
         purchaseDate: new Date(),
         companyId: undefined as any, 
         areaId: undefined as any, 
-        categoryId: assetType as 'LAP' | 'SFF' | 'TORR', 
+        categoryId: typeId as 'LAP' | 'SFF' | 'TORR', 
         modelId: undefined as any, 
         networkName: 'SIN NOMBRE', 
         ram: [undefined], 
@@ -289,14 +304,14 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
         officeKey: ''
     } : 
     {
-        id: '', 
+        internalId: '', 
         responsable: undefined, 
         serialNumber: '', 
-        invoiceNumber: '',
+        invoice: '',
         purchaseDate: new Date(),  
         companyId: undefined as any, 
         areaId: undefined as any, 
-        categoryId: assetType as 'MON' | 'UPS', 
+        categoryId: typeId as 'MON' | 'UPS', 
         modelId: undefined as any, 
         details: ''
     };
@@ -318,36 +333,37 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
       form.reset(mapAssetToFormValues(assetToEdit));
 
       setIsSelecting(true);
-      setCatalogQuery(
-        assetToEdit.model.model ? `${assetToEdit.model.brand} ${assetToEdit.model.model}` : ''
-      );
-      setCatalogResults([]);
+    //   setCatalogQuery(
+    //     assetToEdit.model.model ? `${assetToEdit.model.brand} ${assetToEdit.model.model}` : ''
+    //   );
+    //   setCatalogResults([]);
     }
   }, [isEditMode, assetToEdit, companies, areas]);
 
 
-// catalog computer models search
-  useEffect(() => { 
-    if (isSelecting) return; 
+// Catalog models search
+//   useEffect(() => { 
+//     if (isSelecting) return; 
 
-    const fetchCatalog = async () => {
-      if (catalogQuery.length < 2) {
-        setCatalogResults([]);
-        return;
-      }
+//     const fetchCatalog = async () => {
+//       if (catalogQuery.length < 1) {
+//         setCatalogResults([]);
+//         return;
+//       }
 
-      try {
-        const res = await catalogService.search(catalogQuery);
-        setCatalogResults(res.data); 
-      } catch (e) {
-        console.error(e);
-      }
-    };
+//       try {
+//         const res = await catalogService.search(catalogQuery);
+//         console.log(res.data);
+//         setCatalogResults(res.data); 
+//       } catch (e) {
+//         console.error(e);
+//       }
+//     };
 
-    const delayDebounce = setTimeout(fetchCatalog, 300);
+//     const delayDebounce = setTimeout(fetchCatalog, 300);
 
-    return () => clearTimeout(delayDebounce);
-  }, [catalogQuery]);
+//     return () => clearTimeout(delayDebounce);
+//   }, [catalogQuery]);
 
   useEffect(() => {
   if (!isSelecting) return;
@@ -363,26 +379,30 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
  const osLicenses = licenses.filter(l => l.softwareType === "SO");
 
  function isComputerAsset(
-  data: AssetFormData
-): data is ComputerForm {
-  return ['LAP', 'SFF', 'TORR'].includes(data.categoryId);
-}
+    data: AssetFormData
+ ): data is ComputerForm {
+    return ['LAP', 'SFF', 'TORR'].includes(data.categoryId);
+ }
 
   async function onSubmit(data: z.infer<typeof schema>) {
     try {
+        // --Transform
         let cleanData: AssetFormData = data;
-
+        let payload;
         if (isComputerAsset(data)) {
             cleanData = {
                 ...data,
                 ram: data.ram?.filter(Boolean),
                 storage: data.storage?.filter(Boolean),
             };
-        }
-        const payload = mapFormToComputer(cleanData);
-        let display = '';
 
-        switch (assetType) {
+            payload = mapRequestToComputer(cleanData);
+        }else {
+            payload = cleanData;
+        }
+
+        let display = '';
+        switch (typeId) {
             case 'LAP':
                 display = 'La laptop';
                 break;
@@ -404,7 +424,7 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
         }
 
       if (isEditMode) {
-
+        // console.log("DATA TO SEND:", JSON.stringify(payload, null, 2));
         await assetService.update(assetToEdit.assetId, payload);
 
         toast({
@@ -412,13 +432,8 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
           description: `${display} ha sido actualizado correctamente.`,
         });
       } else {        
-        const payload = mapFormToComputer(cleanData);
-
-        // console.log(JSON.stringify(payload, null, 2));
-        
+        // console.log('DATA TO SEND:', JSON.stringify(payload, null, 2)); 
         await assetService.create(payload);
-
-        // console.log('Asset data submitted:', { payload });
         toast({
           title: 'Registro Exitoso',
           description: `${display} ha sido registrado correctamente.`,
@@ -429,7 +444,7 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
       if (onSaveSuccess) {
         onSaveSuccess();
       }
-    } catch (error) {
+    }catch (error) {
       console.error('Error during operation:', error);
       toast({
         variant: 'destructive',
@@ -440,7 +455,7 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
   }
 
   const getPlaceholder = () => {
-    switch (assetType) {
+    switch (typeId) {
         case 'LAP':
             return 'LAPTOP-001';
         case 'SFF':
@@ -495,11 +510,11 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
                                             className="p-2 hover:bg-gray-100 cursor-pointer"
                                             onClick={() => {
                                                 field.onChange(Number(user.userId)); // se guarda el ID
-                                                setQuery(`${user.firstname} ${user.middlename ?? ''} ${user.lastname} ${user.s_lastname ?? ''}`);
+                                                setQuery(user.name);
                                                 clearResults();
                                             }}
                                         >
-                                    {user.userId} - {user.firstname}{" "} {user.middlename} {user.lastname}{" "} {user.s_lastname}
+                                            {user.name}
                                         </div>
                                     ))}
                                 </div>
@@ -518,7 +533,7 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
                 {/* Common Fields */}
                 <FormField
                 control={form.control}
-                name="id"
+                name="internalId"
                 render={({ field }) => (
                     <FormItem>
                     <FormLabel>Activo / Nombre</FormLabel>
@@ -548,7 +563,7 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
                 {/* FACTURA */}
                 <FormField
                 control={form.control}
-                name="invoiceNumber"
+                name="invoice"
                 render={({ field }) => (
                     <FormItem>
                     <FormLabel>Factura (Opcional)</FormLabel>
@@ -578,7 +593,7 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
                             )}
                             >
                             {field.value ? (
-                                format(field.value, 'PPP')
+                                format(field.value, 'PP')
                             ) : (
                                 <span>Selecciona una fecha</span>
                             )}
@@ -589,7 +604,7 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
                         <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                             mode="single"
-                            selected={field.value as Date | undefined}
+                            selected={field.value ? new Date(field.value) : undefined}
                             onSelect={field.onChange}
                             disabled={(date) =>
                             date > new Date() || date < new Date('1900-01-01')
@@ -603,96 +618,26 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
                 )}
                 />
 
-                {/* CATALOGO MODELOS COMPUTADOR */}
-                <FormItem>
-                    <FormLabel>Modelo de Equipo</FormLabel>
-                        <FormControl>
-                            <Input
-                                placeholder="Buscar marca, modelo o procesador..."
-                                value={catalogQuery}
-                                onChange={(e) => setCatalogQuery(e.target.value)}
-                                onBlur={() => setTimeout(() => setCatalogResults([]), 200)}
-                            />
-                        </FormControl>
-
-                    {/* RESULTADOS */}
-                    {catalogResults.length > 0 && (
-                    <div className="border rounded-md mt-2 max-h-40 overflow-y-auto">
-                        {catalogResults.map((item) => (
-                        <div
-                            key={item.modelId}
-                            className="p-2 hover:bg-gray-100 cursor-pointer"
-                            onClick={() => {
-                                setIsSelecting(true);
-
-                                // relleno automático
-                                form.setValue("modelId", item.modelId);
-
-                                setCatalogQuery(
-                                    `${item.computer_brand.brand} ${item.modelFamily} ${item.modelSerie}`
-                                );
-
-                                setCatalogResults([]);
-                            }}
-                        >
-                            <div className="font-medium">
-                                {item.computer_brand.brand} {item.modelFamily} {item.modelSerie}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                                {item.processor.processorModel}
-                            </div>
-                        </div>
-                        ))}
-                    </div>
-                    )}
-
-                    <FormMessage />
-                </FormItem>
-                
-                {/* Computer-specific fields */}
-                {isComputer && (
-                <>
-
+                {/* CATALOGO MODELOS ACTIVOS */}
                 <FormField
                     control={form.control}
-                    name="networkName"
+                    name='modelId'
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Nombre en Red (Opcional)</FormLabel>
-                        <FormControl>
-                            <Input placeholder="PC-VENTAS-01" {...field} />
-                        </FormControl>
-                        <FormMessage />
+                            <FormLabel>Modelo de Equipo</FormLabel>
+                                <FormControl>
+                                    <ModelSearch
+                                        value={field.value}
+                                        onChange={(modelId) =>
+                                            field.onChange(modelId)
+                                        }
+                                    />
+                                </FormControl>
+                            <FormMessage />
                         </FormItem>
                     )}
-                    />
 
-                {/* TIPO DE EQUIPO */}
-                <FormField
-                control={form.control}
-                name="categoryId"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Tipo de Equipo</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value ?? undefined}>
-                        <FormControl>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Selecciona un tipo" />
-                        </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                        <SelectItem value="LAP">PORTATIL</SelectItem>
-                        <SelectItem value="SFF">Mini-PC</SelectItem>
-                        <SelectItem value="TORR">TORRE</SelectItem>
-                        {/* <SelectItem value="MON">MONITOR</SelectItem>
-                        <SelectItem value="UPS">UPS</SelectItem> */}
-                        </SelectContent>
-                    </Select>
-                    <FormMessage />
-                    </FormItem>
-                )}
                 />
-
                 {/* EMPRESA */}
                 <FormField
                 control={form.control}
@@ -738,6 +683,50 @@ function AssetForm({ assetType, onSaveSuccess, onBack, assetToEdit }: { assetTyp
                                 {area.area}
                             </SelectItem>
                             ))}
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                
+                {/* Computer-specific fields */}
+                {isComputer && (
+                <>
+
+                <FormField
+                    control={form.control}
+                    name="networkName"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Nombre en Red (Opcional)</FormLabel>
+                        <FormControl>
+                            <Input placeholder="PC-VENTAS-01" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+
+                {/* TIPO DE EQUIPO */}
+                <FormField
+                control={form.control}
+                name="categoryId"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Tipo de Equipo</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value ?? undefined}>
+                        <FormControl>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Selecciona un tipo" />
+                        </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                        <SelectItem value="LAP">PORTATIL</SelectItem>
+                        <SelectItem value="SFF">Mini-PC</SelectItem>
+                        <SelectItem value="TORR">TORRE</SelectItem>
+                        {/* <SelectItem value="MON">MONITOR</SelectItem>
+                        <SelectItem value="UPS">UPS</SelectItem> */}
                         </SelectContent>
                     </Select>
                     <FormMessage />
@@ -1014,6 +1003,7 @@ function AssetTypeSelector({ onSelect, onCancel }: { onSelect: (type: 'LAP' | 'S
 
 function ActivosPageComponent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { toast } = useToast();
   //   Dialog tabs config
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -1022,7 +1012,7 @@ function ActivosPageComponent() {
   const [isChangeOwnerOpen, setIsChangeOwnerOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'deleted'>('all');
-  const [selectedResponsable, setSelectedResponsable] = useState<FormUser | null>(null);
+  const [selectedResponsable, setSelectedResponsable] = useState<SimpleUser | null>(null);
   const {
     query: ownerQuery,
     setQuery: setOwnerQuery,
@@ -1030,42 +1020,56 @@ function ActivosPageComponent() {
     isSearching: ownerSearching,
     clearResults
   } = useUserSearch();
+  const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   //    Assets
   const [assets, setAssets] = useState<AssetList[]>([]);
   const [removedAssets, setRemovedAssets] = useState<RemovedList[]>([]);
   const [selectedAsset, setSelectedAsset] = useState<DetailedAsset | null>(null);
   const [assetCache, setAssetCache] = useState<Record<number, any>>({});
   const [assetToEdit, setAssetToEdit] = useState<DetailedAsset | null>(null);
-  const [assetToDelete, setAssetToDelete] = useState<any | null>(null);
+  const [assetToDelete, setAssetToDelete] = useState<AssetList | null>(null);
   const [selectedAssetType, setSelectedAssetType] = useState<'LAP' | 'SFF' | 'TORR' | 'MON' | 'UPS' | null>(null);
   const [removalReason, setRemovalReason] = useState('');
   //    Catalogs
-  const [userRole, setUserRole] = useState<string | null>(null);
   const { companies, companiesLoading } = useCompanies();
   const { areas, areasLoading } = useAreas();
-  const [technicians, setTechnicians] = useState<FormUser[]>([]);
+  const [technicians, setTechnicians] = useState<SimpleUser[]>([]);
   const { memories, disks, licenses, loading } = useCatalogs();
   //    Configs
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingRemoved, setIsLoadingRemoved] = useState(true);
-  const [removedLoaded, setRemovedLoaded] = useState(false);
+//   const [removedLoaded, setRemovedLoaded] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [advancedFilters, setAdvancedFilters] = useState({
     companyId: '',
     areaId: '',
     status: '',
-    search: '',
+    typeId: '',
+    // search: '',
   });
   const [currentPage, setCurrentPage] = useState(1);
+  const [remcurrentPage, setRemCurrentPage] = useState(1);
   const [pagination, setPagination] = useState({
     current_page: 1,
     last_page: 1,
     per_page: 15,
     total: 0,
   });
+  const [remPagination, setRemPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    per_page: 15,
+    total: 0,
+  });
+  const[session, setSession] = useState<AuthResponse | null>(null);
+  
+  useEffect(()=>{
+    setSession(getSession());
+  }, []);
+  
  //=================== FETCH FROM API ===================
- // Fetch assets
+  // Fetch assets
   const loadAssets = async () => {
     try {
         setIsLoading(true);
@@ -1075,6 +1079,7 @@ function ActivosPageComponent() {
             search: debouncedSearch,
             areaId: advancedFilters.areaId ? Number(advancedFilters.areaId) : undefined,
             status: advancedFilters.status,
+            typeId: advancedFilters.typeId
         });
         setAssets(assets.data);
         setPagination(assets.meta);
@@ -1089,13 +1094,18 @@ function ActivosPageComponent() {
         setIsLoading(false);
     }
   }
-
+  // Fecth inactive assets
   const loadRemovedAssets = async () => {
     try{
         setIsLoadingRemoved(true);
 
-        const removed = await assetService.listRemoved();
+        const removed = await assetService.listRemoved({
+            search: debouncedSearch,
+            page: remcurrentPage
+        });
+
         setRemovedAssets(removed.data);
+        setRemPagination(removed.meta);
     }catch (e) {
         console.error(e);
         toast({
@@ -1108,23 +1118,19 @@ function ActivosPageComponent() {
     }
   }
 
-//   const loadRemovedComputers = async () => {
-//     try{
-//         setIsLoadingRemoved(true);
+  // Load assets from url param
+  useEffect(() => {
+    const openAssetId = searchParams.get('openAssetId');
 
-//         const removed = await computerService.listRemoved();
-//         setRemovedAssets(removed.data);
-//     }catch (e) {
-//         console.error(e);
-//         toast({
-//             variant: 'destructive',
-//             title: 'Error',
-//             description: 'No se pudieron cargar los activos eliminados',
-//         });
-//     } finally {
-//         setIsLoadingRemoved(false);
-//     }
-//   }
+    if (!openAssetId || isDetailDialogOpen) return;
+
+    handleOpenDetailDialog(Number(openAssetId));
+
+    const params = new URLSearchParams(searchParams);
+    params.delete('openAssetId');
+
+    router.replace('/assets');
+}, [searchParams, router, isDetailDialogOpen]);
 
   // Load assets
   useEffect(() => {   
@@ -1133,21 +1139,21 @@ function ActivosPageComponent() {
 
   // Load removed assets
   useEffect(() => {
-    if(activeTab === 'deleted' && !removedLoaded) {
+    if(activeTab === 'deleted') {
         loadRemovedAssets();
-        setRemovedLoaded(true);
+        // setRemovedLoaded(true);
     }
-  }, [activeTab]);
+  }, [activeTab, remcurrentPage, debouncedSearch]);
 
  // Fecth technicians list
-     useEffect(() => {
+    useEffect(() => {
       const fetchTechnicians = async () => {
         setIsLoading(true);
   
         try {
           const response = await usersService.listTechnicians();
   
-          setTechnicians(response.flat());
+          setTechnicians(response.data);
         } catch {
           toast({
             variant: 'destructive',
@@ -1178,18 +1184,28 @@ function ActivosPageComponent() {
   };
 
   const handleOpenDetailDialog = async (assetId: number) => {
-    if (assetCache[assetId]) {
-        setSelectedAsset(assetCache[assetId]);
+    try {
+        if (assetCache[assetId]) {
+            setSelectedAsset(assetCache[assetId]);
+            setIsDetailDialogOpen(true);
+            return;
+        }
+        const res = await assetService.get(assetId);
+        setAssetCache(prev => ({
+            ...prev,
+            [assetId]: res.data
+        }));
+        setSelectedAsset(res.data);
         setIsDetailDialogOpen(true);
-        return;
+    } catch (error) {
+        console.error(error);
+
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'No se pudo cargar el activo.'
+        });
     }
-    const res = await assetService.get(assetId);
-    setAssetCache(prev => ({
-        ...prev,
-        [assetId]: res.data
-    }));
-    setSelectedAsset(res.data);
-    setIsDetailDialogOpen(true);
   };
 
   const handleHistoryDialogChange = (open: boolean) => {
@@ -1206,6 +1222,10 @@ function ActivosPageComponent() {
         setIsDetailDialogOpen(false);
     } else if (selectedAsset) {
         setIsDetailDialogOpen(true);
+
+        setOwnerQuery('');
+        setSelectedResponsable(null);
+        clearResults();
     }
     setIsChangeOwnerOpen(open);
   }
@@ -1251,26 +1271,22 @@ function ActivosPageComponent() {
 
   const handleDeleteAsset = async () => {
     if (!assetToDelete) {
-        console.log("nothing");
+        console.log("no asset to delete");
         return
     };
-    
     try{
-        console.log("motivo: ", removalReason, "computador: ", assetToDelete.id);
+        // console.log("motivo: ", removalReason, "activo: ", assetToDelete.assetId);
         
-        await computerService.delete(assetToDelete.id, removalReason);
-
+        await assetService.delete(assetToDelete.assetId, removalReason);
         setIsDetailDialogOpen(false);
-
         setSelectedAsset(null);
-
         setRemovalReason('');
-
         await loadAssets();
+        await loadRemovedAssets();
 
         toast({
             title: 'Activo Dado de Baja',
-            description: `El activo ${assetToDelete.internalId} ${assetToDelete.name} ha sido movido a la papelera.`
+            description: `El activo ${assetToDelete.internalId} ${assetToDelete.model} ha sido eliminado.`
         });
     } catch(error) {
         console.error(error);
@@ -1280,6 +1296,28 @@ function ActivosPageComponent() {
                 title: 'Error',
                 description: 'No se pudo dar de baja el activo',
             });
+    }
+  }
+
+  const handleRestoreAsset = async (assetId: number) => {
+    try {
+        await assetService.restore(assetId);
+
+        await loadRemovedAssets();
+        await loadAssets();
+
+        toast({
+            title: "Activo Restaurado",
+            description: "El activo fue restaurado correctamente."
+        });
+    } catch(e) {
+        console.error(e);
+
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "No se pudo restaurar el activo."
+        });
     }
   }
   
@@ -1292,7 +1330,7 @@ function ActivosPageComponent() {
   };
 
   const clearAdvancedFilters = () => {
-    setAdvancedFilters({companyId: '', areaId: '', status: '', search: '' });
+    setAdvancedFilters({companyId: '', areaId: '', status: '', typeId: ''});
   };
 
   // DEBOUNCE SEARCH
@@ -1312,7 +1350,7 @@ function ActivosPageComponent() {
     UPS: 'UPS'
   } as const;
 
-  const isStandardUser = userRole === 'estandar';
+  const isStandardUser = session?.user.rol === 'PER';
 
   // RAM
   const rams = selectedAsset?.ram?.map(ram => ram.name) ?? [];
@@ -1338,8 +1376,7 @@ function ActivosPageComponent() {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col h-full min-w-[800px]">
-        <Header />
+      <div className="flex flex-col h-full min-w-[600px] p-6 gap-6">
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold font-headline tracking-tight">Activos</h1>
@@ -1363,14 +1400,13 @@ function ActivosPageComponent() {
                           </DialogDescription>
                       </DialogHeader>
                       <AssetForm 
-                          assetType={selectedAssetType} 
+                          typeId={selectedAssetType} 
                           onSaveSuccess={handleSaveSuccess}
                           onBack={() => setSelectedAssetType(null)} 
                       />
                       </>
                   )}
                   <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-                      <X className="h-4 w-4" />
                       <span className="sr-only">Close</span>
                   </DialogClose>
                 </DialogContent>
@@ -1427,6 +1463,16 @@ function ActivosPageComponent() {
                                                       <SelectItem value="Almacen">En Almacén</SelectItem>
                                                   </SelectContent>
                                               </Select>
+                                              <Select value={advancedFilters.typeId} onValueChange={(value) => handleAdvancedFilterChange('typeId', value)}>
+                                                  <SelectTrigger><SelectValue placeholder="Tipo" /></SelectTrigger>
+                                                  <SelectContent>
+                                                      <SelectItem value="LAP">Laptop</SelectItem>
+                                                      <SelectItem value="SFF">SFF</SelectItem>
+                                                      <SelectItem value="TORR">Torre</SelectItem>
+                                                      <SelectItem value="MON">Monitor</SelectItem>
+                                                      <SelectItem value="UPS">UPS</SelectItem>
+                                                  </SelectContent>
+                                              </Select>
                                           </div>
                                           <div className="pt-4 flex justify-end">
                                               <Button variant="ghost" onClick={clearAdvancedFilters}>Limpiar filtros</Button>
@@ -1453,8 +1499,13 @@ function ActivosPageComponent() {
                         <TableBody>
                         {isLoading ? (
                             <TableRow>
-                                <TableCell colSpan={6} className="text-center py-6">
-                                    Cargando activos...
+                                <TableCell colSpan={6}>
+                                    <div className="flex flex-col items-center justify-center min-h-[200px]">
+                                    <Loader2 className="h-12 w-12 animate-spin" />
+                                    <span className="mt-3 text-muted-foreground">
+                                        Cargando activos...
+                                    </span>
+                                    </div>
                                 </TableCell>
                             </TableRow>
                         ): assets.length === 0 ? (
@@ -1463,7 +1514,7 @@ function ActivosPageComponent() {
                                     No hay activos registrados.
                                 </TableCell>
                             </TableRow>
-                        ) : (
+                        ): (
                             assets.map((asset) => {
                                 return (
                                     <TableRow key={asset.assetId}>
@@ -1526,8 +1577,8 @@ function ActivosPageComponent() {
                                         </TableCell>
                                     </TableRow>
                                 );
-                            }))
-                        }
+                            })
+                        )}
                         </TableBody>
                         </Table>
                         <div className="flex items-center justify-between mt-4">
@@ -1535,23 +1586,13 @@ function ActivosPageComponent() {
                                 Página {pagination.current_page} de {pagination.last_page}
                             </p>
                             <div className="flex gap-2">
-                                <Button
-                                    variant="outline"
-                                    disabled={pagination.current_page === 1}
-                                    onClick={() =>
-                                        setCurrentPage((prev) => prev - 1)
-                                    }
-                                >
+                                <Button variant="outline" disabled={pagination.current_page === 1} onClick={() => setCurrentPage((prev) => prev - 1)}>
+                                    <ArrowBigLeft className="mr-2 h-4 w-4"/>
                                     Anterior
                                 </Button>
-                                <Button
-                                    variant="outline"
-                                    disabled={pagination.current_page === pagination.last_page}
-                                    onClick={() =>
-                                        setCurrentPage((prev) => prev + 1)
-                                    }
-                                >
+                                <Button variant="outline" disabled={pagination.current_page === pagination.last_page} onClick={() => setCurrentPage((prev) => prev + 1)}>
                                     Siguiente
+                                    <ArrowBigRight className="mr-2 h-4 w-4"/>
                                 </Button>
                             </div>
                         </div>
@@ -1589,13 +1630,18 @@ function ActivosPageComponent() {
                               </TableRow>
                           </TableHeader>
                           <TableBody>
-                                { isLoading ? (
+                           {isLoading ? (
                                 <TableRow>
-                                    <TableCell colSpan={6} className="text-center py-6">
-                                        Cargando activos removidos...
-                                    </TableCell>
+                                <TableCell colSpan={6}>
+                                    <div className="flex flex-col items-center justify-center min-h-[200px]">
+                                    <Loader2 className="h-12 w-12 animate-spin" />
+                                    <span className="mt-3 text-muted-foreground">
+                                        Cargando activos eliminados...
+                                    </span>
+                                    </div>
+                                </TableCell>
                                 </TableRow>
-                                ): removedAssets.length === 0 ? (
+                            ): removedAssets.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={6} className="text-center py-6">
                                         No hay activos eliminados registrados.
@@ -1610,8 +1656,8 @@ function ActivosPageComponent() {
                                         <TableCell>{String(asset.removalDate)}</TableCell>
                                         <TableCell>{truncate(asset.reason)}</TableCell>
                                         <TableCell>
-                                        <Button variant="outline" size="sm">
-                                            <Trash2 className="mr-2 h-4 w-4" />
+                                        <Button variant="outline" size="sm" onClick={() => handleRestoreAsset(asset.assetId)}>
+                                            <RotateCcw className="mr-2 h-4 w-4" />
                                             Restaurar
                                         </Button>
                                         </TableCell>
@@ -1620,6 +1666,21 @@ function ActivosPageComponent() {
                             )}
                           </TableBody>
                           </Table>
+                          <div className="flex items-center justify-between mt-4">
+                            <p className="text-sm text-muted-foreground">
+                                Página {remPagination.current_page} de {remPagination.last_page}
+                            </p>
+                            <div className="flex gap-2">
+                                <Button variant="outline" disabled={remPagination.current_page === 1} onClick={() =>setRemCurrentPage((prev) => prev - 1)}>
+                                    <ArrowBigLeft className="mr-2 h-4 w-4"/>
+                                    Anterior
+                                </Button>
+                                <Button variant="outline" disabled={pagination.current_page === pagination.last_page} onClick={() => setRemCurrentPage((prev) => prev + 1)}>
+                                    Siguiente
+                                    <ArrowBigRight className="mr-2 h-4 w-4"/>
+                                </Button>
+                            </div>
+                          </div>
                       </div>
                       </CardContent>
                   </Card>
@@ -1634,10 +1695,10 @@ function ActivosPageComponent() {
         <DialogContent className="w-[90vw] max-w-[90vw] md:w-full md:max-w-4xl rounded-lg max-h-[90vh] overflow-y-auto">
             {selectedAsset && ( 
             <>
-                <DialogHeader>
-                    <div className="flex items-center justify-between">
+                <DialogHeader className='pr-12'>
+                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                         <div>
-                            <DialogTitle className="text-2xl font-headline">Detalles del Activo: {selectedAsset.id} {selectedAsset.model.model}</DialogTitle>
+                            <DialogTitle className="text-2xl font-headline">Detalles del Activo: {selectedAsset.internalId} {selectedAsset.model.model}</DialogTitle>
                             <DialogDescription>
                                 Información completa y registros de mantenimiento.
                             </DialogDescription>
@@ -1655,7 +1716,7 @@ function ActivosPageComponent() {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                                <div className="md:col-span-1"><span className="font-semibold">ID Activo: </span>{selectedAsset.id}</div>
+                                <div className="md:col-span-1"><span className="font-semibold">ID Activo: </span>{selectedAsset.internalId}</div>
                                 <div className="md:col-span-1"><span className="font-semibold">Categoría: </span>{selectedAsset.category}</div>
                                 <div className="md:col-span-1"><span className="font-semibold">Estado: </span>{selectedAsset.status}</div>
                                 <div className="md:col-span-1"><span className="font-semibold">Empresa: </span>{selectedAsset.company.company}</div>
@@ -1667,6 +1728,7 @@ function ActivosPageComponent() {
                                 <div className="md:col-span-1"><span className="font-semibold">Modelo: </span>{selectedAsset.model.model}</div>
                                 <div className="md:col-span-1"><span className="font-semibold">Area: </span>{selectedAsset.area.area}</div>
                                 {selectedAsset.processor && <div className="md:col-span-1"><span className="font-semibold">Procesador: </span>{selectedAsset.processor?.name}</div>}
+                                {selectedAsset.details && <div className="md:col-span-1"><span className="font-semibold">Detalles: </span>{selectedAsset.details}</div>}
 
                                 {rams.length > 0 && (
                                 <div className="md:col-span-1">
@@ -1712,7 +1774,7 @@ function ActivosPageComponent() {
                             </div>
                         </CardContent>
                     </Card>
-                    <AssetHistory assetId={selectedAsset.assetId}/>
+                    <AssetHistory assetId={selectedAsset.assetId} refreshKey={historyRefreshKey}/>
                 </div>
                 {!isStandardUser && (
                   <DialogFooter className="border-t pt-4 flex-wrap justify-start gap-2">
@@ -1742,7 +1804,7 @@ function ActivosPageComponent() {
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-headline">Añadir Registro al Historial</DialogTitle>
                     <DialogDescription>
-                        Registra un nuevo mantenimiento o incidente para el activo {selectedAsset?.id}.
+                        Registra un nuevo mantenimiento o incidente para el activo {selectedAsset?.internalId}.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="py-4">
@@ -1752,8 +1814,8 @@ function ActivosPageComponent() {
                             onSaveSuccess={() => {
                                 setIsHistoryDialogOpen(false);
                                 if (selectedAsset) setIsDetailDialogOpen(true);
-                            }
-                        }
+                            }}
+                            onMaintenanceCreated = {() => setHistoryRefreshKey(prev => prev + 1)}
                             technicians={technicians}
                         />
                     )}
@@ -1767,7 +1829,7 @@ function ActivosPageComponent() {
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-headline">Cambiar Responsable</DialogTitle>
                     <DialogDescription>
-                        Selecciona el nuevo responsable para el activo {selectedAsset?.id}. 
+                        Selecciona el nuevo responsable para el activo {selectedAsset?.internalId}. 
                         El responsable actual es {selectedAsset?.responsable?.name ?? ''}.
                     </DialogDescription>
                 </DialogHeader>
@@ -1797,13 +1859,13 @@ function ActivosPageComponent() {
                                             setSelectedResponsable(user);
 
                                             setOwnerQuery(
-                                                `${user.firstname} ${user.lastname}`
+                                                `${user.name}`
                                             );
 
                                             clearResults();
                                         }}
                                     >
-                                        {user.userId} - {user.firstname} {user.lastname ?? " "} {user.lastname} {user.s_lastname ?? " "}
+                                        {user.name}
                                     </div>
                                 ))}
                             </div>
@@ -1813,7 +1875,7 @@ function ActivosPageComponent() {
                             <p className="text-sm text-muted-foreground">
                                 Responsable seleccionado:
                                 <span className="font-medium ml-1">
-                                    {selectedResponsable.firstname} {selectedResponsable.middlename} {selectedResponsable.lastname} {selectedResponsable.s_lastname}
+                                    {selectedResponsable.name}
                                 </span>
                             </p>
                         )}
@@ -1823,13 +1885,17 @@ function ActivosPageComponent() {
                     <Button variant="outline" onClick={() => handleChangeOwnerDialogChange(false)}>Cancelar</Button>
                     <Button
                         onClick={async () => {
-                            if (!selectedResponsable || !selectedAsset) return;
-
+                            if (!selectedResponsable || !selectedAsset) return;  
                             await assetService.setResponsable(
                                 selectedAsset?.assetId,
                                 selectedResponsable.userId
                             );
 
+                            setSelectedAsset(prev => prev ? {
+                                ...prev,
+                                responsable: {userId: selectedResponsable.userId, name: selectedResponsable.name}
+                            } : null);
+                            await loadAssets();
                             toast({
                                 title: "Responsable Cambiado",
                                 description: "El responsable del activo ha sido actualizado."
@@ -1848,21 +1914,20 @@ function ActivosPageComponent() {
         <Dialog open={isEditDialogOpen} onOpenChange={handleEditDialogChange}>
             <DialogContent className="w-[90vw] max-w-[90vw] md:w-full md:max-w-4xl rounded-lg max-h-[90vh] overflow-y-auto p-0">
                 <DialogHeader className="pt-12 px-6">
-                    <DialogTitle className="text-2xl font-headline text-center">{assetToEdit ? `Editar Activo: ${assetToEdit.id} - ${assetToEdit.model.brand} ${assetToEdit.model.model}` : `Editar Activo`}</DialogTitle>
+                    <DialogTitle className="text-2xl font-headline text-center">{assetToEdit ? `Editar Activo: ${assetToEdit.internalId} - ${assetToEdit.model.brand} ${assetToEdit.model.model}` : `Editar Activo`}</DialogTitle>
                     <DialogDescription className="text-center">
                         Modifica los datos del activo. El responsable no se puede cambiar aquí.
                     </DialogDescription>
                 </DialogHeader>
                 {assetToEdit?.categoryId && (
                         <AssetForm 
-                            assetType={assetToEdit.categoryId} 
+                            typeId={assetToEdit.categoryId} 
                             onSaveSuccess={handleSaveSuccess}
                             assetToEdit={assetToEdit}
                             onBack={() => handleEditDialogChange(false)}
                         />
                 )}
                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-                    <X className="h-4 w-4" />
                     <span className="sr-only">Close</span>
                 </DialogClose>
             </DialogContent>

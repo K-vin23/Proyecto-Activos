@@ -29,15 +29,17 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { getSession } from '@/lib/session';
 import { AuthUser } from '@/types/auth.types';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 export default function Header() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [currentDate, setCurrentDate] = useState('');
 
   useEffect(() => {
-    // const name = localStorage.getItem('userName') || '';
     const session = getSession();
 
     if(!session) {
@@ -49,7 +51,16 @@ export default function Header() {
     setUser(session.user);
   }, []);
 
-    function nameInitials(name?: string) {
+  useEffect(() => {
+    setCurrentDate(
+      format(
+      new Date(),
+      "d 'de' MMMM 'a las' h:mm a",
+      { locale: es }
+    ));
+  })
+
+  function nameInitials(name?: string) {
       if(!name?.trim()) return "NA";
 
       const names = name.trim().split(" ");
@@ -62,11 +73,6 @@ export default function Header() {
   }
 
   const handleLogout = () => {
-    // localStorage.removeItem('isAuthenticated');
-    // localStorage.removeItem('userRole');
-    // localStorage.removeItem('userName');
-    // localStorage.removeItem('userIdNumber');
-    // localStorage.removeItem('userEmail');
     router.replace('/login');
     toast({
       title: 'Sesión Cerrada',
@@ -84,11 +90,24 @@ export default function Header() {
     setIsDialogOpen(false);
   };
 
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const firstname = user?.name?.split(' ')[0] ?? '';
+
   return (
-    <header className="flex h-14 items-center gap-4 border-b bg-card px-4 sticky top-0 z-30 lg:h-[60px] lg:px-6">
-      {/* <SidebarTrigger className="md:hidden"/> */}
+    <header className="flex h-14 items-center gap-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 sticky top-0 z-40 lg:h-[60px] lg:px-6">
+      <SidebarTrigger />
       <div className="w-full flex-1">
-        {/* Search bar removed as requested */}
+        <h2 className="text-lg font-semibold">
+          Bienvenido, {firstname}
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          {currentDate || 'cargando fecha..'}
+        </p>
       </div>
       
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -102,8 +121,6 @@ export default function Header() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>{user?.name}</DropdownMenuLabel>
-            <DropdownMenuSeparator />
             <DialogTrigger asChild>
               <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                 Cambiar Clave
@@ -114,13 +131,18 @@ export default function Header() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Cambiar Contraseña</DialogTitle>
-            <DialogDescription>
-              Asegúrate de que tu nueva contraseña sea segura.
-            </DialogDescription>
-          </DialogHeader>
+        {mounted && (
+          <DialogContent 
+            className="sm:max-w-[425px]"
+            aria-labelledby="dialog-title"
+            aria-describedby="dialog-description"
+          >
+            <DialogHeader>
+              <DialogTitle id="dialog-title">Cambiar Contraseña</DialogTitle>
+              <DialogDescription id="dialog-description">
+                Asegúrate de que tu nueva contraseña sea segura.
+              </DialogDescription>
+            </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="current-password" className="text-right">
@@ -164,7 +186,7 @@ export default function Header() {
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+        )}      </Dialog>
     </header>
   );
 }

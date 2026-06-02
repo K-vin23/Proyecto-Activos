@@ -18,12 +18,14 @@ import {
 import {
   LayoutDashboard,
   Users,
-  Archive,
   LogOut,
   Box,
   Building,
+  Boxes,
+  BookOpenText,
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import Header from '@/components/dashboard/header';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { getSession, clearSession } from '@/lib/session';
@@ -73,7 +75,8 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
   const CAN_VIEW = {
     Empresas: user?.rol === Rol.Admin,
     Usuarios: user?.rol === Rol.Admin || user?.rol === Rol.Tecnico,
-    Dasboard: user?.rol === Rol.Admin || user?.rol === Rol.Tecnico
+    Dasboard: user?.rol === Rol.Admin || user?.rol === Rol.Tecnico,
+    Catalog: user?.rol === Rol.Admin || user?.rol === Rol.Tecnico
   } as const;
 
   return (
@@ -81,8 +84,8 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
       <div className="flex min-h-screen bg-background">
         <Sidebar>
           <SidebarHeader>
-            <div className="flex items-center gap-3 p-2">
-              <Box className="size-8 text-primary-foreground" />
+            <div className="flex flex-col items-center leading-none">
+              <Box className="size-9 text-primary-foreground mb-1" />
               <h1 className="text-xl font-bold font-headline text-primary-foreground">
                 Activos Pro
               </h1>
@@ -123,17 +126,27 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive('/assets')} tooltip="Activos">
                   <Link href="/assets">
-                    <Archive />
+                    <Boxes />
                     <span>Activos</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              {CAN_VIEW.Catalog && (
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive('/catalogo')} tooltip="Catálogo">
+                  <Link href="/catalogo">
+                    <BookOpenText />
+                    <span>Catálogo Técnico</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter>
             <div className="flex items-center gap-3 p-2">
               <Avatar className="h-10 w-10">
-                <AvatarFallback>{nameInitials(user?.name).toUpperCase()}</AvatarFallback>
+                <AvatarFallback className='text-black'>{nameInitials(user?.name).toUpperCase()}</AvatarFallback>
               </Avatar>
               <div className="flex flex-col overflow-hidden">
                 <span className="text-sm font-semibold text-sidebar-foreground truncate">
@@ -154,7 +167,10 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
             </SidebarMenu>
           </SidebarFooter>
         </Sidebar>
-        <SidebarInset className="overflow-auto">{children}</SidebarInset>
+        <SidebarInset className="overflow-auto">
+          <Header />
+          {children}
+        </SidebarInset>
       </div>
     </SidebarProvider>
   );

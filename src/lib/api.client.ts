@@ -1,6 +1,6 @@
 import { getAuthToken, clearSession } from '@/lib/session';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://192.168.1.11:8000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'https://api-assets.onrender.com/api';
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 

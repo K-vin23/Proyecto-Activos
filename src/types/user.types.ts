@@ -8,7 +8,7 @@ export interface Rol {
     rol: string
 }
 
-export interface RegistBy {
+export interface SimpleUser {
     userId: number,
     name: string
 }
@@ -40,11 +40,11 @@ export interface DetailedUser {
     status: string
   };
 
-  export interface FormUser {
-    userId: number,
-    firstname: string,
-    middlename: string,
-    lastname: string,
-    s_lastname: string
-  }
+//   export interface FormUser {
+//     userId: number,
+//     firstname: string,
+//     middlename: string,
+//     lastname: string,
+//     s_lastname: string
+//   }
 

@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Archive, Users, ClipboardList } from "lucide-react"
+import { Boxes, Users, ClipboardList, ClockAlert } from "lucide-react"
 import { DashboardResponse } from "@/types/dashboard.types";
 
 export default function SummaryCards({ totals }: Partial<DashboardResponse>) {
@@ -10,7 +10,7 @@ export default function SummaryCards({ totals }: Partial<DashboardResponse>) {
           <CardTitle className="text-sm font-medium">
             Activos Totales
           </CardTitle>
-          <Archive className="h-4 w-4 text-muted-foreground" />
+          <Boxes className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{totals?.assets}</div>
@@ -50,7 +50,7 @@ export default function SummaryCards({ totals }: Partial<DashboardResponse>) {
           <CardTitle className="text-sm font-medium">
             Tareas pendientes
           </CardTitle>
-          <ClipboardList className="h-4 w-4 text-muted-foreground" />
+          <ClockAlert className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{totals?.nextMaintenances}</div>

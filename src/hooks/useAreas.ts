@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { areasService } from "@/services/areas.service";
+import { areasService } from "@/services/company/areas.service";
 import { Area } from "@/types/area.type";
 
 export function useAreas() {
